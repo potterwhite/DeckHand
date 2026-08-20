@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/potterwhite/DeckHand/compare/v0.2.0...v0.2.1) (2026-08-20)
+
+
+### Bug Fixes
+
+* link to the Chinese plugin README from README.zh-CN.md ([#6](https://github.com/potterwhite/DeckHand/issues/6)) ([9a987d3](https://github.com/potterwhite/DeckHand/commit/9a987d3cd55368ce61f2a7411c982576443328ca))
+
 ## [0.2.0](https://github.com/potterwhite/DeckHand/compare/v0.1.0...v0.2.0) (2026-08-20)
 
 
