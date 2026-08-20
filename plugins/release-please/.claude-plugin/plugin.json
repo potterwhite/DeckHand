@@ -1,0 +1,11 @@
+{
+  "name": "release-please",
+  "description": "为任意 GitHub 仓库配置 google/release-please 语义化自动发版流水线。",
+  "version": "0.1.0",
+  "author": {
+    "name": "PotterWhite"
+  },
+  "homepage": "https://github.com/potterwhite/DeckHand/tree/main/plugins/release-please",
+  "repository": "https://github.com/potterwhite/DeckHand",
+  "license": "MIT"
+}

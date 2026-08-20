@@ -1,107 +1,96 @@
 # DeckHand
 
-**CI 自动化的甲板水手 —— 负责那些重复的、枯燥的、但必不可少的活。**
+**甲板水手 —— 干那些重复、枯燥、但必不可少的活。**
 
-自动配置语义化发版流水线。目前基于 [release-please](https://github.com/googleapis/release-please)；
-设计上支持任何发版自动化工具作为后端。
+这个仓库是一个 Claude Code **plugin marketplace**。每个 plugin 是一个独立单元，
+自带 README 和技能，彼此无关，各装各的。
 
----
+## Plugins
 
-## 快速开始
+| Plugin | 作用 | 文档 |
+|---|---|---|
+| `release-please` | 为 GitHub 仓库配置语义化自动发版流水线 | [README](plugins/release-please/README.md) |
+
+## 安装
+
+```
+/plugin marketplace add potterwhite/DeckHand
+/plugin install release-please@deckhand
+```
+
+装完如果提示 `Run /reload-plugins to activate.`，跑一下 `/reload-plugins`。
+
+技能带 plugin 名前缀调用，例如 `/release-please:setup`。
+
+## 本地开发
+
+改 plugin 时不用装，直接挂载：
 
 ```bash
-git clone https://github.com/potterwhite/DeckHand.git
-cd DeckHand
-pip install -e .
-cd 你的目标项目
-deckhand setup
+claude --plugin-dir ./plugins/release-please
 ```
 
----
+改完 `SKILL.md` 跑 `/reload-plugins` 生效，不用重启。
 
-## 理念
+想让某个 plugin 在所有项目里常驻（软链接，改动即时生效）：
 
-船长需要甲板水手：处理重复、细节导向的工作，让船长专注于航行。
-DeckHand 对你的 CI 流水线做同样的事 —— 无聊的初始化、样板配置、例行杂务 ——
-让你专注于构建。
-
-## 当前范围
-
-- 从 git tag 检测当前版本号
-- 生成 `.github/workflows/release-please.yml`
-- 生成 `release-please-config.json`
-- 生成 `.release-please-manifest.json`
-- 自动 commit、push，并引导你完成 GitHub 权限设置
-
-## 演进方向
-
-- 可插拔后端（release-please、semantic-release、changesets、自定义）
-- 独立 CLI 工具（`deckhand setup`、`deckhand ship`、`deckhand status`）
-- MCP Server，供 AI 工具调用
-- Docker 镜像，适配 CI 环境
-
-## 状态
-
-早期脚手架。Skill 版已在 Claude Code 中可用；独立 CLI 是下一步。
-
----
-
-## 给 AI 的上下文
-
-以下信息供 Claude Code 等 AI 工具理解项目结构并执行 skill。
-
-### 项目结构
-
-```
-deckhand/
-├── .claude/skills/deckhand/skill.md   ← Claude Code Skill 编排脚本
-├── src/deckhand/
-│   ├── __init__.py                    ← 版本号
-│   ├── cli.py                         ← CLI 入口 (setup / status / ship)
-│   ├── config.py                      ← DeckHandConfig 配置类
-│   ├── git.py                         ← git 工具函数 (版本检测, 仓库名等)
-│   └── backends/
-│       ├── __init__.py                ← 后端注册表
-│       ├── base.py                    ← Backend 抽象基类
-│       └── release_please.py          ← release-please 实现
-└── pyproject.toml                     ← 项目配置
+```bash
+ln -s "$PWD/plugins/release-please" ~/.claude/skills/release-please
 ```
 
-### 核心接口
+提交前验证结构：
 
-```python
-from deckhand.backends import get_backend
-from deckhand.config import DeckHandConfig
-from pathlib import Path
-
-config = DeckHandConfig(
-    backend="release-please",
-    package_name="my-project",
-    current_version="0.1.0",
-    changelog_path="CHANGELOG.md",
-)
-
-backend = get_backend("release-please")
-files = backend.generate(config)  # → {相对路径: 文件内容}
-
-for filepath, content in files.items():
-    target = Path.cwd() / filepath
-    target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(content)
+```bash
+claude plugin validate ./plugins/release-please
 ```
 
-### 可插拔后端
+## 加一个新 plugin
 
-在 `backends/__init__.py` 的 `_BACKENDS` 注册表中添加新后端类即可扩展。
+hierarchy 已经定型，加东西只是 `mkdir`，不需要改动现有结构：
 
-### 数据流
+```bash
+mkdir -p plugins/新名字/{.claude-plugin,skills/某技能}
+```
+
+然后写三个文件：
 
 ```
-用户输入 (package_name, changelog_path 等)
-        ↓
-DeckHandConfig
-        ↓
-Backend.generate(config) → {文件路径: 文件内容}
-        ↓
-写入目标仓库 → git commit → git push
+plugins/新名字/
+├── .claude-plugin/plugin.json     # name / description / version
+├── README.md                      # 这个单元自己的说明
+└── skills/某技能/
+    └── SKILL.md                   # frontmatter: name + description
 ```
+
+最后在根目录 `.claude-plugin/marketplace.json` 的 `plugins` 数组里加一条
+（`source` 是相对 `./plugins` 的路径，也就是目录名）。
+
+## 结构
+
+```
+DeckHand/
+├── .claude-plugin/marketplace.json   ← 仓库即 marketplace，列出所有 plugin
+└── plugins/
+    └── release-please/               ← 一个独立单元
+        ├── .claude-plugin/plugin.json
+        ├── README.md
+        └── skills/setup/
+            ├── SKILL.md
+            ├── templates/            ← 静态模板，skill 复制并替换占位符
+            └── references/           ← 按需加载的深度资料
+```
+
+**注意**：plugin 安装时是把目录复制到缓存，所以 plugin 之间**不能**用 `../` 相对路径
+共享文件 —— 每个单元必须自包含。
+
+## 设计取向
+
+没有 Python，没有二进制，没有要安装的运行时。全部是 Markdown 指令加静态模板。
+
+因为这类活的难点从来不是计算，而是判断：这是 monorepo 吗？tag 前缀是 `v` 还是裸的？
+已有的 CHANGELOG 要保留还是接管？失败日志到底在说什么？特殊情况太多，
+写成 if-elif 只会在真正有意思的仓库上出错。判断交给模型，确定性的部分交给静态模板。
+
+## License
+
+MIT

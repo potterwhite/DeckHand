@@ -1,0 +1,19 @@
+name: release-please
+
+on:
+  push:
+    branches:
+      - __DEFAULT_BRANCH__
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: googleapis/release-please-action@v4
+        with:
+          release-type: __RELEASE_TYPE__

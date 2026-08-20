@@ -1,0 +1,18 @@
+{
+  "name": "deckhand",
+  "description": "自动化那些重复、枯燥但必不可少的开发流程杂活。每个 plugin 是一个独立单元。",
+  "owner": {
+    "name": "PotterWhite",
+    "url": "https://github.com/potterwhite"
+  },
+  "plugins": [
+    {
+      "name": "release-please",
+      "source": "./plugins/release-please",
+      "description": "为任意 GitHub 仓库配置 google/release-please 语义化自动发版流水线：侦察仓库特征、生成配置、引导权限设置、验证首次运行。",
+      "author": {
+        "name": "PotterWhite"
+      }
+    }
+  ]
+}
