@@ -8,13 +8,24 @@ This repository is a Claude Code **plugin marketplace**. Each plugin is a
 self-contained unit with its own README and skills — independent of the others,
 installed on its own.
 
-## Plugins
+**Which section you want:**
+
+| What you're doing | Read |
+|---|---|
+| Installing and getting started | 1 → 2 → 3 |
+| Upgrading to the latest version | 4 |
+| Editing a skill in this repo | Appendix 1 |
+| Adding a new plugin | Appendix 2 |
+
+---
+
+## 1. Plugins
 
 | Plugin | What it does | Docs |
 |---|---|---|
 | `release-please` | Configure a semantic auto-release pipeline for any GitHub repo | [README](plugins/release-please/README.md) |
 
-## Install
+## 2. Install
 
 Two commands, and you need both. `marketplace add` only fetches the catalog —
 it installs nothing by itself:
@@ -36,15 +47,18 @@ Getting the case wrong on either one makes the command fail.
 
 If the install summary prints `Run /reload-plugins to activate.`, run it.
 
+## 3. Use
+
 Skills are namespaced by plugin name, so invoke with the prefix:
 
 ```
 /release-please:setup
 ```
 
-Browse what you have installed, and read load errors, with `/plugin`.
+Plugin skills do **not** appear in `/skills` — that is by design, not a broken
+install. Browse what you have, and read load errors, with `/plugin`.
 
-### Updating
+## 4. Updating
 
 Your machine holds a git clone of this repo, parked at one commit. New commits
 here do not reach you automatically — pull them:
@@ -53,7 +67,11 @@ here do not reach you automatically — pull them:
 /plugin marketplace update deckhand
 ```
 
-## Local development
+---
+
+Everything below is only for people changing this repo.
+
+## Appendix 1 · Local development
 
 A marketplace install loads a **cached snapshot** pinned to a pushed commit, not
 your working tree — so editing `SKILL.md` appears to do nothing. Mount the
@@ -65,12 +83,9 @@ claude --plugin-dir ./plugins/release-please    # local copy wins for the sessio
 claude plugin validate ./plugins/release-please  # before committing
 ```
 
-Plugin skills are namespaced and do **not** appear in `/skills` — invoke
-`/release-please:setup`, and use `/plugin` to see what is loaded.
-
 Full procedure and the failure modes that look like bugs: `/plugin-dev`.
 
-## Adding a plugin
+## Appendix 2 · Adding a plugin
 
 The hierarchy is settled. Adding something is just `mkdir` — no existing
 structure needs to change:
@@ -93,7 +108,7 @@ Finally add an entry to the `plugins` array in the root
 `.claude-plugin/marketplace.json` (`source` is a path relative to the repo root,
 i.e. `./plugins/NAME`).
 
-## Layout
+## Appendix 3 · Layout
 
 ```
 DeckHand/
@@ -112,7 +127,7 @@ DeckHand/
 **cannot** share files via `../` relative paths — every unit must be
 self-contained.
 
-## Design stance
+## Appendix 4 · Design stance
 
 No Python, no binaries, no runtime to install. Markdown instructions plus static
 templates, nothing else.

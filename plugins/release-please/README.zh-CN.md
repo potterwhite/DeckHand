@@ -6,18 +6,15 @@
 语义化自动发版：提交用 `feat:` / `fix:` 前缀，机器人自动算版本号、写 `CHANGELOG.md`、开 Release PR、
 打 tag、发 GitHub Release。
 
-用的是 **manifest 模式** —— 官方称之为 "Manifest Driven release-please"，是主路径。
-从 `release-please-action@v4` 起，官方「remove most configuration options in favor of manifest
-configuration」，大量 action inputs 被删，配置的正确位置是配置文件而非 `with:`。
-生成的 workflow 钉 `@v5`。
-
-## 技能
+## 1. 技能
 
 | 技能 | 作用 |
 |---|---|
 | `/release-please:setup` | 在当前仓库配置整套流水线 |
 
-## 用法
+## 2. 用法
+
+还没装？见[仓库根 README](../../README.zh-CN.md#2-安装)。
 
 在**目标仓库**里跑：
 
@@ -25,18 +22,34 @@ configuration」，大量 action inputs 被删，配置的正确位置是配置�
 /release-please:setup
 ```
 
-## 它会做什么
+## 3. 它会做什么
 
 1. **侦察** —— 默认分支、现有 tag 与 release、语言生态、有无冲突文件
-2. **商定版本策略** —— 停下来问你，见下节
+2. **商定版本策略** —— 停下来问你两个问题，见附录 1
 3. **生成** —— 三个文件：workflow、`release-please-config.json`、`.release-please-manifest.json`
 4. **提交推送** —— 新建分支，停下来等你确认
 5. **开权限开关** —— 全流程唯一需要 repo admin 的动作，停下来等你确认
 6. **验证** —— 检查首次运行，解释失败原因
 
-## 值得一提的是步骤 2
+步骤 2 之前不会写任何文件，步骤 4 和 5 各自都会停下来等你。
 
-动手写文件之前会问两个问题。两个都是现在回答很便宜、事后搞错很贵的。
+## 4. 前置条件
+
+| 需要 | 什么时候 | 没有的话 |
+|---|---|---|
+| `git` + push 权限 | 全程 | 无法进行 |
+| GitHub remote | 全程 | 不支持 —— action 只跑在 GitHub |
+| repo admin 权限 | 步骤 5 | 得找有权限的人点一下那个开关 |
+| `gh` 已登录 | 步骤 1、5、6 | 退化成给你链接自己点，功能不减 |
+| token 的 `workflow` scope | 步骤 4，**仅 HTTPS remote** | push 会被拒；换 SSH，或跑 `gh auth refresh -h github.com -s workflow` |
+
+---
+
+以下是背景资料 —— 遇到问题时再看，不必预读。
+
+## 附录 1 · 步骤 2 问的那两个问题
+
+两个都是现在回答很便宜、事后搞错很贵的。
 
 **当前版本号是多少？** 这个值用来播种 `.release-please-manifest.json`。播错了，下一次发版会从一个
 很低的版本重新编号。而 tag 是会骗人的 —— 发布分支、打错的 tag、根本没发出去的 tag —— 所以侦察到的值
@@ -58,17 +71,14 @@ minor —— 等于把 release-please 退化成一个 `+0.1.0` 计数器。官�
 **往维护分支回合补丁**，不是主分支日常发版。它会把你引向上面那组护栏，那才是真正对得上你意图的工具；
 听完理由你仍然坚持，override 照写。
 
-## 前置条件
+## 附录 2 · 为什么用 manifest 模式
 
-| 需要 | 什么时候 | 没有的话 |
-|---|---|---|
-| `git` + push 权限 | 全程 | 无法进行 |
-| GitHub remote | 全程 | 不支持 —— action 只跑在 GitHub |
-| repo admin 权限 | 步骤 5 | 得找有权限的人点一下那个开关 |
-| `gh` 已登录 | 步骤 1、5、6 | 退化成给你链接自己点，功能不减 |
-| token 的 `workflow` scope | 步骤 4，**仅 HTTPS remote** | push 会被拒；换 SSH，或跑 `gh auth refresh -h github.com -s workflow` |
+manifest 模式是官方称的 "Manifest Driven release-please"，也是官方的主路径。
+从 `release-please-action@v4` 起，官方「remove most configuration options in favor of manifest
+configuration」，大量 action inputs 被删，配置的正确位置是配置文件而非 `with:`。
+生成的 workflow 钉 `@v5`。
 
-## 深入
+## 附录 3 · 深入
 
 `skills/setup/references/gotchas.md` —— **每一条论断都标了置信度，撑不住的直接删掉而不是用低置信度糊过去。**
 覆盖：HTTPS remote 的 `workflow` scope 那道墙、monorepo、用 `extra-files` 把版本号同步进源文件、

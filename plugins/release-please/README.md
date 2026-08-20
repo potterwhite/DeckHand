@@ -6,18 +6,15 @@ Set up [google/release-please](https://github.com/googleapis/release-please) sem
 on any GitHub repo: prefix commits with `feat:` / `fix:`, and the bot computes the version, writes
 `CHANGELOG.md`, opens a Release PR, creates the tag, and publishes the GitHub Release.
 
-Uses **manifest mode** — what upstream calls "Manifest Driven release-please" and treats as the
-primary path. From `release-please-action@v4` onward most action inputs were removed "in favor of
-manifest configuration", so configuration lives in files, not in `with:` inputs. The generated
-workflow pins `@v5`.
-
-## Skills
+## 1. Skill
 
 | Skill | Does |
 |---|---|
 | `/release-please:setup` | Configure the whole pipeline in the current repo |
 
-## Usage
+## 2. Use
+
+Not installed yet? See the [repo README](../../README.md#2-install).
 
 Run it inside the **target repo**:
 
@@ -25,19 +22,34 @@ Run it inside the **target repo**:
 /release-please:setup
 ```
 
-## What it does
+## 3. What it does
 
 1. **Survey** — default branch, existing tags and releases, language ecosystem, conflicting files
-2. **Agree on a version policy** — stops and asks; see below
+2. **Agree on a version policy** — stops and asks you two questions; see Appendix 1
 3. **Generate** — three files: the workflow, `release-please-config.json`, `.release-please-manifest.json`
 4. **Commit and push** — on a new branch, stops for your confirmation
 5. **Turn on the permission switch** — the only step needing repo admin, stops for your confirmation
 6. **Verify** — check the first run, explain any failure
 
-## Step 2 is the one worth knowing about
+Nothing is written before step 2, and steps 4 and 5 each stop for you.
 
-Two questions get asked before anything is written, because both are cheap to answer now and
-expensive to get wrong later.
+## 4. Prerequisites
+
+| Needed | When | Without it |
+|---|---|---|
+| `git` + push access | throughout | cannot proceed |
+| GitHub remote | throughout | unsupported — the action only runs on GitHub |
+| repo admin | step 5 | someone with admin has to flip one switch |
+| `gh` logged in | steps 1, 5, 6 | degrades to handing you links to click; nothing is lost |
+| `workflow` token scope | step 4, **HTTPS remotes only** | the push is rejected; switch to SSH or run `gh auth refresh -h github.com -s workflow` |
+
+---
+
+Everything below is background — read it when a question comes up, not before.
+
+## Appendix 1 · The two questions in step 2
+
+Both are cheap to answer now and expensive to get wrong later.
 
 **What is the current version?** It seeds `.release-please-manifest.json`. Seed it wrong and the next
 release renumbers from a low version. Tags can lie — release branches, mistagged commits, tags that
@@ -61,17 +73,14 @@ minor, `feat!:` bumps minor — reducing release-please to a `+0.1.0` counter. U
 steered to the guardrails above, which is the tool that actually fits the intent; the override is
 still written if you insist after hearing why.
 
-## Prerequisites
+## Appendix 2 · Why manifest mode
 
-| Needed | When | Without it |
-|---|---|---|
-| `git` + push access | throughout | cannot proceed |
-| GitHub remote | throughout | unsupported — the action only runs on GitHub |
-| repo admin | step 5 | someone with admin has to flip one switch |
-| `gh` logged in | steps 1, 5, 6 | degrades to handing you links to click; nothing is lost |
-| `workflow` token scope | step 4, **HTTPS remotes only** | the push is rejected; switch to SSH or run `gh auth refresh -h github.com -s workflow` |
+Manifest mode is what upstream calls "Manifest Driven release-please" and treats as the primary path.
+From `release-please-action@v4` onward most action inputs were removed "in favor of manifest
+configuration", so configuration lives in files, not in `with:` inputs. The generated workflow pins
+`@v5`.
 
-## Going deeper
+## Appendix 3 · Going deeper
 
 `skills/setup/references/gotchas.md` — every claim carries a confidence figure, and anything that
 could not be supported was deleted rather than hedged. Covers: the HTTPS `workflow` scope wall,
