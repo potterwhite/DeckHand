@@ -7,13 +7,24 @@
 这个仓库是一个 Claude Code **plugin marketplace**。每个 plugin 是一个独立单元，
 自带 README 和技能，彼此无关，各装各的。
 
-## Plugins
+**该看哪一节：**
+
+| 你想做什么 | 看 |
+|---|---|
+| 装上开始用 | 1 → 2 → 3 |
+| 升级到最新版 | 4 |
+| 改这个仓库里的 skill | 附录 1 |
+| 加一个新 plugin | 附录 2 |
+
+---
+
+## 1. Plugins（有哪些）
 
 | Plugin | 作用 | 文档 |
 |---|---|---|
 | `release-please` | 为任意 GitHub 仓库配置语义化自动发版流水线 | [README](plugins/release-please/README.md) |
 
-## 安装
+## 2. 安装
 
 两条命令，都得跑。`marketplace add` 只是把 catalog 拉下来，**它自己装不了任何东西**：
 
@@ -33,15 +44,18 @@
 
 装完如果提示 `Run /reload-plugins to activate.`，跑一下 `/reload-plugins`。
 
+## 3. 使用
+
 技能带 plugin 名前缀调用：
 
 ```
 /release-please:setup
 ```
 
+plugin skill **不出现在** `/skills` 里 —— 这是设计如此，不是坏了。
 用 `/plugin` 查看已装的东西和加载错误。
 
-### 更新
+## 4. 更新
 
 你机器上是这个仓库的一份 git clone，停在某个 commit。这里推了新 commit **不会**自动到你那边，得手动拉：
 
@@ -49,7 +63,11 @@
 /plugin marketplace update deckhand
 ```
 
-## 本地开发
+---
+
+以下内容只有要改这个仓库的人才需要看。
+
+## 附录 1 · 本地开发
 
 marketplace 安装加载的是**钉在已推送 commit 上的缓存快照**，不是你的工作区 —— 所以改
 `SKILL.md` 看起来毫无反应。直接挂载工作区：
@@ -60,12 +78,9 @@ claude --plugin-dir ./plugins/release-please    # 本会话内本地优先
 claude plugin validate ./plugins/release-please  # 提交前
 ```
 
-plugin skill 带命名空间，**不出现在** `/skills` —— 用 `/release-please:setup` 调用，
-用 `/plugin` 看加载情况。
-
 完整步骤和那些会被误判成 bug 的现象：`/plugin-dev`。
 
-## 加一个新 plugin
+## 附录 2 · 加一个新 plugin
 
 hierarchy 已经定型，加东西只是 `mkdir`，不需要改动现有结构：
 
@@ -86,7 +101,7 @@ plugins/新名字/
 最后在根目录 `.claude-plugin/marketplace.json` 的 `plugins` 数组里加一条
 （`source` 是相对仓库根的路径，也就是 `./plugins/新名字`）。
 
-## 结构
+## 附录 3 · 仓库结构
 
 ```
 DeckHand/
@@ -104,7 +119,7 @@ DeckHand/
 **注意**：plugin 安装时是把目录复制到缓存，所以 plugin 之间**不能**用 `../` 相对路径
 共享文件 —— 每个单元必须自包含。
 
-## 设计取向
+## 附录 4 · 设计取向
 
 没有 Python，没有二进制，没有要安装的运行时。全部是 Markdown 指令加静态模板。
 
