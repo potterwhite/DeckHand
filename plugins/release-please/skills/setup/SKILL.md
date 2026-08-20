@@ -1,42 +1,53 @@
 ---
 name: setup
-description: 为 git 仓库配置 release-please 自动发版流水线：侦察仓库特征、生成 GitHub Actions workflow、引导完成必需的仓库权限设置、验证首次运行。当用户要求"配置自动发版"、"初始化 release-please"、"setup CI release"、"加自动 changelog"时使用。
-allowed-tools: Read, Glob, Bash(git rev-parse *), Bash(git remote *), Bash(git tag *), Bash(git log *), Bash(git status *), Bash(git branch *), Bash(gh repo view *), Bash(gh auth status)
+description: Configure a google/release-please automated release pipeline for a GitHub repo — survey the repo, agree on a version policy, generate the manifest-mode config, walk through the required permission switch, verify the first run. Use when the user asks to "set up automated releases", "init release-please", "setup CI release", "add automatic changelog", "automate versioning", or 配置自动发版 / 初始化 release-please / 自动生成 changelog / 自动升版本号.
+allowed-tools: Read, Glob, Bash(git rev-parse *), Bash(git remote *), Bash(git tag *), Bash(git describe *), Bash(git log *), Bash(git status *), Bash(git branch *), Bash(gh repo view *), Bash(gh release list *), Bash(gh auth status)
 ---
 
 # release-please setup
 
-在**目标仓库**（用户当前所在的仓库，不是 DeckHand 自己）配置自动发版。
+Set up automated releases in the **target repo** — the repo the user is currently in, not DeckHand
+itself.
 
-## 铁律
+This skill uses **manifest mode** (`release-please-config.json` + `.release-please-manifest.json`),
+which is what upstream calls "Manifest Driven release-please" and treats as the primary path.
+From `release-please-action@v4` onward most action inputs were removed "in favor of manifest
+configuration", so config files — not `with:` inputs — are where configuration belongs.
 
-1. 推送前、改仓库设置前，停下来让用户确认。
-2. 已存在的 `.github/workflows/release*.yml` 或 `CHANGELOG.md` 绝不静默覆盖 —— 报告并询问。
-3. remote 不是 GitHub 就停止：release-please-action 只跑在 GitHub。
+## Hard rules
 
-## 步骤 1 · 侦察
+1. Stop for user confirmation before pushing, and before changing repo settings.
+2. Never silently overwrite an existing `.github/workflows/release*.yml`, `release-please-config.json`,
+   `.release-please-manifest.json`, or `CHANGELOG.md` — report and ask.
+3. Stop if the remote is not GitHub: `release-please-action` only runs on GitHub.
+4. **Never guess the initial version.** Getting it wrong makes the next release renumber from
+   `0.1.0`. Confirm it with the user in step 2.
+
+## Step 1 · Survey
 
 ```bash
-git remote get-url origin                                 # 是否 GitHub、owner/repo
-git remote show origin | sed -n 's/.*HEAD branch: //p'    # 默认分支
-git tag --sort=-v:refname | head -5                       # 现有版本、tag 前缀
-ls .github/workflows/ CHANGELOG.md 2>/dev/null            # 冲突物
-gh repo view --json viewerPermission -q .viewerPermission # 是否 ADMIN，决定步骤 4 走哪条路
-gh auth status 2>&1 | grep -i 'token scopes'              # 仅当 remote 是 https:// 时才需要看
+git remote get-url origin                                 # GitHub? owner/repo?
+git remote show origin | sed -n 's/.*HEAD branch: //p'    # default branch
+git describe --tags --abbrev=0 2>/dev/null                # current version, if any
+git tag --sort=-v:refname | head -5                       # tag naming pattern
+gh release list --limit 5                                 # do Releases exist? any drafts?
+ls .github/workflows/ CHANGELOG.md 2>/dev/null            # conflicts
+gh repo view --json viewerPermission -q .viewerPermission # ADMIN? decides step 5's path
+gh auth status 2>&1 | grep -i 'token scopes'              # only matters for https:// remotes
 ```
 
-**别用 `git symbolic-ref refs/remotes/origin/HEAD` 取默认分支** —— 这个 ref 在很多仓库里
-根本没设置，会直接报 `fatal: ref ... is not a symbolic ref`。用上面那条 `git remote show`，
-或 `gh repo view --json defaultBranchRef -q .defaultBranchRef.name`。
+**Do not use `git symbolic-ref refs/remotes/origin/HEAD` to find the default branch** — that ref is
+unset in many repos and fails with `fatal: ref ... is not a symbolic ref`. Use the `git remote show`
+line above, or `gh repo view --json defaultBranchRef -q .defaultBranchRef.name`.
 
-**remote 是 `https://` 且 token scopes 里没有 `workflow`，现在就停下告诉用户。** 本 skill 唯一
-的产出就是 `.github/workflows/` 下的文件，而 GitHub 禁止缺 `workflow` scope 的 OAuth token
-写这个目录 —— 到步骤 3 push 时必然被拒。SSH remote 不受此限制。解法见
-[references/gotchas.md](references/gotchas.md) 第 0 条。
+**If the remote is `https://` and the token scopes do not include `workflow`, stop now and tell the
+user.** This skill writes into `.github/workflows/`, and GitHub refuses that write from an OAuth
+token lacking `workflow` scope — the push in step 4 will be rejected. SSH remotes are exempt.
+Fix: [references/gotchas.md](references/gotchas.md) § 0.
 
-按根目录的包清单决定 `release-type`：
+Pick `release-type` from the manifest file in the repo root:
 
-| 检测到 | release-type |
+| Found | release-type |
 |---|---|
 | `package.json` | `node` |
 | `pyproject.toml` / `setup.py` | `python` |
@@ -45,29 +56,73 @@ gh auth status 2>&1 | grep -i 'token scopes'              # 仅当 remote 是 ht
 | `pom.xml` | `maven` |
 | `composer.json` | `php` |
 | `*.gemspec` | `ruby` |
-| 都没有 | `simple` |
+| none of the above | `simple` |
 
-## 步骤 2 · 生成 workflow
+## Step 2 · Agree on the version policy (stop and ask)
 
-读 `${CLAUDE_SKILL_DIR}/templates/release-please.yml`，替换 `__DEFAULT_BRANCH__`
-和 `__RELEASE_TYPE__`，写到目标仓库的 `.github/workflows/release-please.yml`。
+Report what step 1 found, then confirm two things with the user.
 
-一个文件就够。遇到 monorepo、要钉死起始版本、要把版本号同步进源文件 ——
-读 `${CLAUDE_SKILL_DIR}/references/gotchas.md`。
+**(a) The starting version.** State the detected value and ask whether it is really the current
+released version — tags can lie (release branches, mistagged commits, tags that never shipped).
 
-## 步骤 3 · 提交推送（停下确认）
+Reassure them about what this does and does not mean:
 
-新建分支提交并 push，不要直接推默认分支。
+> `.release-please-manifest.json` is written **once, by you, at init**. After the first release the
+> bot owns the file and rewrites it every time. Pinning the starting version does **not** take
+> automatic version decisions away from CI — it is like setting an odometer's initial reading.
 
-**`git push` 不要接管道。** `git push | tail` 的退出码是 `tail` 的，永远为 0，推失败会看起来
-像成功。真被拒时读 `[remote rejected]` 那一行，别信旁边那段 `Note about fast-forwards` 的 hint。
+If no tags and no releases exist, use `0.0.0`.
 
-## 步骤 4 · 开权限开关（停下确认）
+**(b) Whether to add pre-1.0 guardrails.** Only offer these when the version is below `1.0.0`; they
+do not alter semantic version computation, they only soften it while the project is young:
 
-**全流程唯一需要 repo admin 权限的动作。** 不做，release-please 就无法创建 PR。
-这个开关无法用 workflow yaml 里的 `permissions:` 块代替。
+| Config field | Upstream meaning |
+|---|---|
+| `bump-minor-pre-major: true` | "Breaking changes only bump semver minor if version < 1.0.0" — won't jump to `1.0.0` |
+| `bump-patch-for-minor-pre-major: true` | "Feature changes only bump semver patch if version < 1.0.0" — more conservative |
 
-有 `gh` 且已登录：
+**If the user asks to "only ever bump minor" or otherwise wants to cap version movement, do not
+reach for the `versioning` field.** Setting `versioning: always-bump-minor` makes commit types
+meaningless — `fix:` bumps minor, `feat!:` bumps minor — which turns release-please into a
+`+0.1.0` counter and throws away the reason to use it. Upstream documents `always-bump-patch` for
+**backporting fixes to a maintenance branch**, not for day-to-day releases on the default branch.
+Explain this, and steer them to the pre-1.0 guardrails above, which is the tool that actually fits
+that intent. Only write a `versioning` override if they still insist after hearing the tradeoff.
+
+## Step 3 · Generate the three files
+
+Read each template from `${CLAUDE_SKILL_DIR}/templates/`, substitute, and write to the target repo:
+
+| Template | Written to | Substitutions |
+|---|---|---|
+| `release-please.yml` | `.github/workflows/release-please.yml` | `__DEFAULT_BRANCH__` |
+| `release-please-config.json` | `release-please-config.json` | `__RELEASE_TYPE__` |
+| `.release-please-manifest.json` | `.release-please-manifest.json` | `__INITIAL_VERSION__` |
+
+Add any guardrail fields agreed in step 2 into the `"."` package block of the config.
+
+The workflow pins `googleapis/release-please-action@v5`. `v5.0.0` (2026-04-22) shipped exactly one
+breaking change — a **Node 24 runtime**. Config format is unchanged from v4. If the repo uses
+**self-hosted runners** too old for Node 24, drop to `@v4`; nothing else needs to change.
+
+For monorepos, syncing the version into source files, or writing values that only exist at release
+time, read [references/gotchas.md](references/gotchas.md).
+
+## Step 4 · Commit and push (stop and confirm)
+
+Commit on a new branch. Do not push straight to the default branch.
+
+**Never pipe `git push`.** `git push | tail` exits with `tail`'s status — always 0 — so a rejected
+push looks like a success. When it is rejected, read the `[remote rejected]` line; ignore the
+`Note about fast-forwards` hint printed next to it, which is usually about a different problem.
+
+## Step 5 · Turn on the permission switch (stop and confirm)
+
+**The one action in this whole flow that needs repo admin.** Without it release-please cannot create
+its Release PR. The `permissions:` block inside the workflow yaml does **not** substitute for it —
+they are different layers.
+
+With `gh` available and authenticated:
 
 ```bash
 gh api -X PUT repos/OWNER/REPO/actions/permissions/workflow \
@@ -75,30 +130,39 @@ gh api -X PUT repos/OWNER/REPO/actions/permissions/workflow \
   -F can_approve_pull_request_reviews=true
 ```
 
-否则把链接给用户，让他勾选 **Allow GitHub Actions to create and approve pull requests** 再 Save：
+Otherwise hand the user the link and have them tick
+**Allow GitHub Actions to create and approve pull requests**, then Save:
 
 ```
 https://github.com/OWNER/REPO/settings/actions
 ```
 
-## 步骤 5 · 合并后验证
+## Step 6 · Verify after merge
 
-合并配置分支到默认分支 → workflow 自动跑。
+Merge the config branch into the default branch → the workflow runs.
 
-release-please 扫的是「上次 release 以来的提交」。历史里已有 `feat:`/`fix:` 就会立刻开
-Release PR；**一条规范提交都没有时才需要补一个** —— 不要无脑造假 commit。
+release-please scans "commits since the last release". If history already contains `feat:` / `fix:`
+commits it opens a Release PR immediately. **Only fabricate a trigger commit when there is not a
+single conventional commit to work from** — do not reflexively create one.
 
 ```bash
 gh run list --workflow=release-please.yml --limit 3
 gh pr list --label "autorelease: pending"
 ```
 
-报错 `GitHub Actions is not permitted to create or approve pull requests`
-就是步骤 4 没做。其他失败读 `${CLAUDE_SKILL_DIR}/references/gotchas.md`。
+The bot's PR is titled like `chore(main): release 0.6.0`. Merging it creates the tag, publishes the
+GitHub Release, and writes `CHANGELOG.md`.
 
-## 提交规范
+`GitHub Actions is not permitted to create or approve pull requests` means step 5 was skipped.
+Anything else: [references/gotchas.md](references/gotchas.md).
 
-`feat:` → minor，`fix:` → patch，`feat!:` 或正文含 `BREAKING CHANGE:` → major，
-`chore:` / `docs:` / `refactor:` / `test:` → 不发版。
+## Commit convention
 
-squash merge 时 release-please 读的是 **PR 标题**，所以 PR 标题必须合规。
+`feat:` → minor. `fix:` → patch. `feat!:` or `BREAKING CHANGE:` in the body → major (minor instead
+when `bump-minor-pre-major` is on and the version is below `1.0.0`). `chore:` / `docs:` / `refactor:`
+/ `test:` / `style:` → no release.
+
+A `Release-As: 2.0.0` footer in the commit body forces a specific version. Do **not** use the
+`release-as` config field — upstream has deprecated it in favor of that footer.
+
+On squash merge release-please reads the **PR title**, so the PR title is what must be conventional.
