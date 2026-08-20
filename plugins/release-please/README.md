@@ -1,40 +1,80 @@
+[English](README.md) | [中文](README.zh-CN.md)
+
 # release-please
 
-为任意 GitHub 仓库配置 [google/release-please](https://github.com/googleapis/release-please)
-语义化自动发版：提交用 `feat:` / `fix:` 前缀，机器人自动算版本号、写 CHANGELOG、开 Release PR、打 tag、发 Release。
+Set up [google/release-please](https://github.com/googleapis/release-please) semantic auto-releases
+on any GitHub repo: prefix commits with `feat:` / `fix:`, and the bot computes the version, writes
+`CHANGELOG.md`, opens a Release PR, creates the tag, and publishes the GitHub Release.
 
-## 技能
+Uses **manifest mode** — what upstream calls "Manifest Driven release-please" and treats as the
+primary path. From `release-please-action@v4` onward most action inputs were removed "in favor of
+manifest configuration", so configuration lives in files, not in `with:` inputs. The generated
+workflow pins `@v5`.
 
-| 技能 | 作用 |
+## Skills
+
+| Skill | Does |
 |---|---|
-| `/release-please:setup` | 在当前仓库配置整套流水线 |
+| `/release-please:setup` | Configure the whole pipeline in the current repo |
 
-## 用法
+## Usage
 
-在**目标仓库**里跑：
+Run it inside the **target repo**:
 
 ```
 /release-please:setup
 ```
 
-## 它会做什么
+## What it does
 
-1. **侦察** —— 默认分支、现有 tag、语言生态、有无冲突的 workflow
-2. **生成** —— 一个 `.github/workflows/release-please.yml`
-3. **提交推送** —— 新建分支，停下来等你确认
-4. **开权限开关** —— 全流程唯一需要 repo admin 的动作，停下来等你确认
-5. **验证** —— 检查首次运行，解释失败原因
+1. **Survey** — default branch, existing tags and releases, language ecosystem, conflicting files
+2. **Agree on a version policy** — stops and asks; see below
+3. **Generate** — three files: the workflow, `release-please-config.json`, `.release-please-manifest.json`
+4. **Commit and push** — on a new branch, stops for your confirmation
+5. **Turn on the permission switch** — the only step needing repo admin, stops for your confirmation
+6. **Verify** — check the first run, explain any failure
 
-## 前置条件
+## Step 2 is the one worth knowing about
 
-| 需要 | 什么时候 | 没有的话 |
+Two questions get asked before anything is written, because both are cheap to answer now and
+expensive to get wrong later.
+
+**What is the current version?** It seeds `.release-please-manifest.json`. Seed it wrong and the next
+release renumbers from a low version. Tags can lie — release branches, mistagged commits, tags that
+never shipped — so the detected value is reported for you to confirm rather than assumed.
+
+This does **not** hand version control back to you:
+
+> The manifest is written once, by you, at init. After the first release the bot owns the file and
+> rewrites it every time. Seeding the starting version is like setting an odometer's initial reading
+> — CI still decides every bump from here.
+
+**Should pre-1.0 guardrails go on?** Offered only below `1.0.0`. `bump-minor-pre-major` means
+"breaking changes only bump semver minor if version < 1.0.0"; `bump-patch-for-minor-pre-major` means
+"feature changes only bump semver patch if version < 1.0.0". Neither changes how commits are
+interpreted — they only soften the outcome while the project is young.
+
+If you ask to "only ever bump minor", the skill will push back rather than comply. The field that
+literally does that, `versioning: always-bump-minor`, makes commit types meaningless — `fix:` bumps
+minor, `feat!:` bumps minor — reducing release-please to a `+0.1.0` counter. Upstream documents
+`always-bump-*` for backporting onto maintenance branches, not for the default branch. You will be
+steered to the guardrails above, which is the tool that actually fits the intent; the override is
+still written if you insist after hearing why.
+
+## Prerequisites
+
+| Needed | When | Without it |
 |---|---|---|
-| `git` + push 权限 | 全程 | 无法进行 |
-| GitHub remote | 全程 | 不支持（action 只跑在 GitHub） |
-| repo admin 权限 | 步骤 4 | 得找有权限的人点一下 |
-| `gh` 已登录 | 步骤 4、5 | 退化成给你链接自己点，功能不减 |
+| `git` + push access | throughout | cannot proceed |
+| GitHub remote | throughout | unsupported — the action only runs on GitHub |
+| repo admin | step 5 | someone with admin has to flip one switch |
+| `gh` logged in | steps 1, 5, 6 | degrades to handing you links to click; nothing is lost |
+| `workflow` token scope | step 4, **HTTPS remotes only** | the push is rejected; switch to SSH or run `gh auth refresh -h github.com -s workflow` |
 
-## 深入
+## Going deeper
 
-`skills/setup/references/gotchas.md` —— monorepo、版本号钉死、pre-1.0 行为、
-`extra-files` 同步版本、分支保护冲突、PAT 与下游 workflow 触发。
+`skills/setup/references/gotchas.md` — every claim carries a confidence figure, and anything that
+could not be supported was deleted rather than hedged. Covers: the HTTPS `workflow` scope wall,
+monorepos, syncing the version into source files with `extra-files`, writing values that only exist
+at release time via `release_created`, branch protection conflicts, and PATs for triggering
+downstream workflows.
