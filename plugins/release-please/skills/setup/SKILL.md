@@ -1,7 +1,7 @@
 ---
 name: setup
 description: 为 git 仓库配置 release-please 自动发版流水线：侦察仓库特征、生成 GitHub Actions workflow、引导完成必需的仓库权限设置、验证首次运行。当用户要求"配置自动发版"、"初始化 release-please"、"setup CI release"、"加自动 changelog"时使用。
-allowed-tools: Read, Glob, Bash(git rev-parse *), Bash(git remote *), Bash(git symbolic-ref *), Bash(git tag *), Bash(git log *), Bash(git status *)
+allowed-tools: Read, Glob, Bash(git rev-parse *), Bash(git remote *), Bash(git tag *), Bash(git log *), Bash(git status *), Bash(git branch *), Bash(gh repo view *), Bash(gh auth status)
 ---
 
 # release-please setup
@@ -17,11 +17,16 @@ allowed-tools: Read, Glob, Bash(git rev-parse *), Bash(git remote *), Bash(git s
 ## 步骤 1 · 侦察
 
 ```bash
-git remote get-url origin                          # 是否 GitHub、owner/repo
-git symbolic-ref --short refs/remotes/origin/HEAD  # 默认分支
-git tag --sort=-v:refname | head -5                # 现有版本、tag 前缀
-ls .github/workflows/ CHANGELOG.md 2>/dev/null     # 冲突物
+git remote get-url origin                                 # 是否 GitHub、owner/repo
+git remote show origin | sed -n 's/.*HEAD branch: //p'    # 默认分支
+git tag --sort=-v:refname | head -5                       # 现有版本、tag 前缀
+ls .github/workflows/ CHANGELOG.md 2>/dev/null            # 冲突物
+gh repo view --json viewerPermission -q .viewerPermission # 是否 ADMIN，决定步骤 4 走哪条路
 ```
+
+**别用 `git symbolic-ref refs/remotes/origin/HEAD` 取默认分支** —— 这个 ref 在很多仓库里
+根本没设置，会直接报 `fatal: ref ... is not a symbolic ref`。用上面那条 `git remote show`，
+或 `gh repo view --json defaultBranchRef -q .defaultBranchRef.name`。
 
 按根目录的包清单决定 `release-type`：
 
