@@ -10,8 +10,10 @@
 ## 快速开始
 
 ```bash
-pip install deckhand
-cd 你的项目目录
+git clone https://github.com/potterwhite/DeckHand.git
+cd DeckHand
+pip install -e .
+cd 你的目标项目
 deckhand setup
 ```
 
@@ -44,7 +46,11 @@ DeckHand 对你的 CI 流水线做同样的事 —— 无聊的初始化、样�
 
 ---
 
-## 项目结构
+## 给 AI 的上下文
+
+以下信息供 Claude Code 等 AI 工具理解项目结构并执行 skill。
+
+### 项目结构
 
 ```
 deckhand/
@@ -58,70 +64,10 @@ deckhand/
 │       ├── __init__.py                ← 后端注册表
 │       ├── base.py                    ← Backend 抽象基类
 │       └── release_please.py          ← release-please 实现
-├── config/                            ← 运行时配置 (未来用)
-├── docs/                              ← 文档
 └── pyproject.toml                     ← 项目配置
 ```
 
-### 核心概念
-
-```
-Backend (抽象基类)
-  ├── generate(config) → dict[str, str]   # 输入配置，输出文件内容
-  │
-  ├── ReleasePleaseBackend                # 当前唯一实现
-  │     ├── _workflow()     → .github/workflows/release-please.yml
-  │     ├── _config()       → release-please-config.json
-  │     └── _manifest()     → .release-please-manifest.json
-  │
-  └── (未来) SemanticReleaseBackend
-        └── ChangesetsBackend
-```
-
-### 数据流
-
-```
-用户输入 (package_name, changelog_path 等)
-        ↓
-DeckHandConfig
-        ↓
-Backend.generate(config) → {文件路径: 文件内容}
-        ↓
-写入目标仓库 → git commit → git push
-```
-
----
-
-## 安装
-
-```bash
-pip install deckhand
-```
-
-开发模式：
-
-```bash
-git clone https://github.com/potterwhite/DeckHand.git
-cd DeckHand
-pip install -e .
-```
-
----
-
-## 用法
-
-```bash
-# 初始化 release-please 配置
-deckhand setup
-
-# 检查当前仓库的发版配置状态
-deckhand status
-
-# 触发发版流程（未来支持）
-deckhand ship
-```
-
-### 在 Python 中使用
+### 核心接口
 
 ```python
 from deckhand.backends import get_backend
@@ -136,7 +82,7 @@ config = DeckHandConfig(
 )
 
 backend = get_backend("release-please")
-files = backend.generate(config)
+files = backend.generate(config)  # → {相对路径: 文件内容}
 
 for filepath, content in files.items():
     target = Path.cwd() / filepath
@@ -144,8 +90,18 @@ for filepath, content in files.items():
     target.write_text(content)
 ```
 
----
+### 可插拔后端
 
-## 协议
+在 `backends/__init__.py` 的 `_BACKENDS` 注册表中添加新后端类即可扩展。
 
-MIT
+### 数据流
+
+```
+用户输入 (package_name, changelog_path 等)
+        ↓
+DeckHandConfig
+        ↓
+Backend.generate(config) → {文件路径: 文件内容}
+        ↓
+写入目标仓库 → git commit → git push
+```
