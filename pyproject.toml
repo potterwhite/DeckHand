@@ -14,8 +14,14 @@ authors = [{name = "PotterWhite"}]
 [project.scripts]
 deckhand = "deckhand.cli:main"
 
+[project.optional-dependencies]
+dev = ["pytest>=8", "pyyaml>=6"]
+
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.setuptools.package-dir]
 "" = "src"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
