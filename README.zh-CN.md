@@ -51,25 +51,19 @@
 
 ## 本地开发
 
-改 plugin 时不用装，直接挂载：
+marketplace 安装加载的是**钉在已推送 commit 上的缓存快照**，不是你的工作区 —— 所以改
+`SKILL.md` 看起来毫无反应。直接挂载工作区：
 
 ```bash
-claude --plugin-dir ./plugins/release-please
+claude --plugin-dir ./plugins/release-please    # 本会话内本地优先
+/reload-plugins                                  # 每次改完
+claude plugin validate ./plugins/release-please  # 提交前
 ```
 
-改完 `SKILL.md` 跑 `/reload-plugins` 生效，不用重启。
+plugin skill 带命名空间，**不出现在** `/skills` —— 用 `/release-please:setup` 调用，
+用 `/plugin` 看加载情况。
 
-想让某个 plugin 在所有项目里常驻（软链接，改动即时生效）：
-
-```bash
-ln -s "$PWD/plugins/release-please" ~/.claude/skills/release-please
-```
-
-提交前验证结构：
-
-```bash
-claude plugin validate ./plugins/release-please
-```
+完整步骤和那些会被误判成 bug 的现象：`/plugin-dev`。
 
 ## 加一个新 plugin
 

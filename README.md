@@ -55,25 +55,20 @@ here do not reach you automatically — pull them:
 
 ## Local development
 
-No install needed while working on a plugin — mount it directly:
+A marketplace install loads a **cached snapshot** pinned to a pushed commit, not
+your working tree — so editing `SKILL.md` appears to do nothing. Mount the
+checkout instead:
 
 ```bash
-claude --plugin-dir ./plugins/release-please
+claude --plugin-dir ./plugins/release-please    # local copy wins for the session
+/reload-plugins                                  # after each edit
+claude plugin validate ./plugins/release-please  # before committing
 ```
 
-After editing a `SKILL.md`, run `/reload-plugins` to pick it up. No restart.
+Plugin skills are namespaced and do **not** appear in `/skills` — invoke
+`/release-please:setup`, and use `/plugin` to see what is loaded.
 
-To keep a plugin loaded across all projects (symlink, so edits apply immediately):
-
-```bash
-ln -s "$PWD/plugins/release-please" ~/.claude/skills/release-please
-```
-
-Validate structure before committing:
-
-```bash
-claude plugin validate ./plugins/release-please
-```
+Full procedure and the failure modes that look like bugs: `/plugin-dev`.
 
 ## Adding a plugin
 
