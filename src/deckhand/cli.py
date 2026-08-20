@@ -44,6 +44,7 @@ def cmd_setup(args: argparse.Namespace) -> None:
     files = backend.generate(config)
     for filepath, content in files.items():
         target = repo_root / filepath
+        target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(content)
         print(f"  已生成: {filepath}")
 
