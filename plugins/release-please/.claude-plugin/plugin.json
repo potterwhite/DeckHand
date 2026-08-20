@@ -1,6 +1,6 @@
 {
   "name": "release-please",
-  "description": "为任意 GitHub 仓库配置 google/release-please 语义化自动发版流水线。",
+  "description": "Configure a google/release-please semantic auto-release pipeline for any GitHub repo, using upstream's manifest mode.",
   "version": "0.1.0",
   "author": {
     "name": "PotterWhite"
