@@ -1,7 +1,7 @@
 {
   "name": "release-please",
   "description": "Configure a google/release-please semantic auto-release pipeline for any GitHub repo, using upstream's manifest mode.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": {
     "name": "PotterWhite"
   },

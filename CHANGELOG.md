@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/potterwhite/DeckHand/compare/v0.1.0...v0.2.0) (2026-08-20)
+
+
+### Features
+
+* **release-please:** migrate to action@v5 manifest mode ([#4](https://github.com/potterwhite/DeckHand/issues/4)) ([c0155d7](https://github.com/potterwhite/DeckHand/commit/c0155d787d2627af4852ab55a131f441e40904f9))
+
 ## 0.1.0 (2026-08-20)
 
 
