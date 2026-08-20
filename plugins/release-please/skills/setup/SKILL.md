@@ -22,11 +22,17 @@ git remote show origin | sed -n 's/.*HEAD branch: //p'    # 默认分支
 git tag --sort=-v:refname | head -5                       # 现有版本、tag 前缀
 ls .github/workflows/ CHANGELOG.md 2>/dev/null            # 冲突物
 gh repo view --json viewerPermission -q .viewerPermission # 是否 ADMIN，决定步骤 4 走哪条路
+gh auth status 2>&1 | grep -i 'token scopes'              # 仅当 remote 是 https:// 时才需要看
 ```
 
 **别用 `git symbolic-ref refs/remotes/origin/HEAD` 取默认分支** —— 这个 ref 在很多仓库里
 根本没设置，会直接报 `fatal: ref ... is not a symbolic ref`。用上面那条 `git remote show`，
 或 `gh repo view --json defaultBranchRef -q .defaultBranchRef.name`。
+
+**remote 是 `https://` 且 token scopes 里没有 `workflow`，现在就停下告诉用户。** 本 skill 唯一
+的产出就是 `.github/workflows/` 下的文件，而 GitHub 禁止缺 `workflow` scope 的 OAuth token
+写这个目录 —— 到步骤 3 push 时必然被拒。SSH remote 不受此限制。解法见
+[references/gotchas.md](references/gotchas.md) 第 0 条。
 
 按根目录的包清单决定 `release-type`：
 
@@ -52,6 +58,9 @@ gh repo view --json viewerPermission -q .viewerPermission # 是否 ADMIN，决�
 ## 步骤 3 · 提交推送（停下确认）
 
 新建分支提交并 push，不要直接推默认分支。
+
+**`git push` 不要接管道。** `git push | tail` 的退出码是 `tail` 的，永远为 0，推失败会看起来
+像成功。真被拒时读 `[remote rejected]` 那一行，别信旁边那段 `Note about fast-forwards` 的 hint。
 
 ## 步骤 4 · 开权限开关（停下确认）
 
