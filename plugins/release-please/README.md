@@ -24,11 +24,11 @@ Run it inside the **target repo**:
 
 ## 3. What it does
 
-1. **Survey** — default branch, existing tags and releases, language ecosystem, conflicting files
+1. **Survey** — default branch, existing tags and releases, language ecosystem, conflicting files, current branch protection
 2. **Agree on a version policy** — stops and asks you two questions; see Appendix 1
 3. **Generate** — three files: the workflow, `release-please-config.json`, `.release-please-manifest.json`
-4. **Commit and push** — on a new branch, stops for your confirmation
-5. **Turn on the permission switch** — the only step needing repo admin, stops for your confirmation
+4. **Repo settings** — three switches, each presented with its purpose and the manual web path: Actions write permission, let Actions open PRs, protect the default branch. The only step needing repo admin; every command is printed and confirmed one at a time, and declining just prints the consequences
+5. **Commit and push** — on a new branch, stops for your confirmation
 6. **Verify** — check the first run, explain any failure
 
 Nothing is written before step 2, and steps 4 and 5 each stop for you.
@@ -39,9 +39,9 @@ Nothing is written before step 2, and steps 4 and 5 each stop for you.
 |---|---|---|
 | `git` + push access | throughout | cannot proceed |
 | GitHub remote | throughout | unsupported — the action only runs on GitHub |
-| repo admin | step 5 | someone with admin has to flip one switch |
-| `gh` logged in | steps 1, 5, 6 | degrades to handing you links to click; nothing is lost |
-| `workflow` token scope | step 4, **HTTPS remotes only** | the push is rejected; switch to SSH or run `gh auth refresh -h github.com -s workflow` |
+| repo admin | step 4 | someone with admin has to flip the switches — the skill prints the manual web paths |
+| `gh` logged in | steps 1, 4, 6 | degrades to handing you links to click; nothing is lost. Not installed at all? The skill offers to install it |
+| `workflow` token scope | step 5, **HTTPS remotes only** | the push is rejected; switch to SSH or run `gh auth refresh -h github.com -s workflow` |
 
 ---
 
