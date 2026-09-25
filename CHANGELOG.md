@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/potterwhite/DeckHand/compare/v0.2.1...v0.3.0) (2026-09-25)
+
+
+### Features
+
+* **release-please:** add repo-settings step with branch protection ([#8](https://github.com/potterwhite/DeckHand/issues/8)) ([4d13838](https://github.com/potterwhite/DeckHand/commit/4d138386416c196a6d9d2d3bf25de6730ab284d2))
+
 ## [0.2.1](https://github.com/potterwhite/DeckHand/compare/v0.2.0...v0.2.1) (2026-08-20)
 
 
