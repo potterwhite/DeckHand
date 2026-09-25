@@ -24,11 +24,11 @@
 
 ## 3. 它会做什么
 
-1. **侦察** —— 默认分支、现有 tag 与 release、语言生态、有无冲突文件
+1. **侦察** —— 默认分支、现有 tag 与 release、语言生态、有无冲突文件、分支保护现状
 2. **商定版本策略** —— 停下来问你两个问题，见附录 1
 3. **生成** —— 三个文件：workflow、`release-please-config.json`、`.release-please-manifest.json`
-4. **提交推送** —— 新建分支，停下来等你确认
-5. **开权限开关** —— 全流程唯一需要 repo admin 的动作，停下来等你确认
+4. **仓库设置** —— 三个开关，每个都写清作用和手动开启的网页路径：Actions 写权限、允许 Actions 建 PR、保护默认分支。全流程唯一需要 repo admin 的步骤；每条命令逐个打印、逐个确认，拒绝则只打印后果提示
+5. **提交推送** —— 新建分支，停下来等你确认
 6. **验证** —— 检查首次运行，解释失败原因
 
 步骤 2 之前不会写任何文件，步骤 4 和 5 各自都会停下来等你。
@@ -39,9 +39,9 @@
 |---|---|---|
 | `git` + push 权限 | 全程 | 无法进行 |
 | GitHub remote | 全程 | 不支持 —— action 只跑在 GitHub |
-| repo admin 权限 | 步骤 5 | 得找有权限的人点一下那个开关 |
-| `gh` 已登录 | 步骤 1、5、6 | 退化成给你链接自己点，功能不减 |
-| token 的 `workflow` scope | 步骤 4，**仅 HTTPS remote** | push 会被拒；换 SSH，或跑 `gh auth refresh -h github.com -s workflow` |
+| repo admin 权限 | 步骤 4 | 得找有权限的人开那几个开关 —— skill 会打印手动开启的网页路径 |
+| `gh` 已登录 | 步骤 1、4、6 | 退化成给你链接自己点，功能不减。压根没装？skill 会提议帮你装 |
+| token 的 `workflow` scope | 步骤 5，**仅 HTTPS remote** | push 会被拒；换 SSH，或跑 `gh auth refresh -h github.com -s workflow` |
 
 ---
 

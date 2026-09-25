@@ -74,7 +74,7 @@ reason is on the `[remote rejected]` line.
 GitHub Actions is not permitted to create or approve pull requests
 ```
 
-**Confidence: 100%** — the repository setting is off. See SKILL.md step 5.
+**Confidence: 100%** — the repository setting is off. See SKILL.md step 4.
 
 **Confidence: 95%** — this **cannot** be substituted with the `permissions:` block in the workflow
 yaml. They are different layers: the repo setting governs whether Actions may open PRs at all, while
@@ -303,6 +303,8 @@ Why each piece is there:
 
 **Confidence: 90%** — when the default branch requires reviews or passing status checks, the bot's
 Release PR cannot be merged. Either grant the bot a bypass, or merge the Release PR manually.
+For setting protection up in the first place — with tiers that do and don't block the bot —
+see SKILL.md step 4.
 
 **Confidence: 70%** — tag protection rules, if configured, can additionally block tag creation after
 the merge. Reasoned from how tag protection works rather than observed here; check tag rules only if
