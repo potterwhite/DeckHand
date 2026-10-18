@@ -1,0 +1,11 @@
+{
+  "name": "appimage",
+  "description": "Install a .AppImage as a first-class desktop citizen: binary under /opt, hicolor icons, a validated .desktop entry, GNOME Activities search, URL-scheme handling. Covers install, upgrade, and full uninstall.",
+  "version": "0.1.0",
+  "author": {
+    "name": "PotterWhite"
+  },
+  "homepage": "https://github.com/potterwhite/DeckHand/tree/main/plugins/appimage",
+  "repository": "https://github.com/potterwhite/DeckHand",
+  "license": "MIT"
+}

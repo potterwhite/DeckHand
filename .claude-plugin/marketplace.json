@@ -13,6 +13,14 @@
       "author": {
         "name": "PotterWhite"
       }
+    },
+    {
+      "name": "appimage",
+      "source": "./plugins/appimage",
+      "description": "Install a .AppImage as a first-class desktop citizen: /opt binary, hicolor icons, validated .desktop entry, GNOME Activities search, URL schemes. Covers install, upgrade, uninstall.",
+      "author": {
+        "name": "PotterWhite"
+      }
     }
   ]
 }

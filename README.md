@@ -24,6 +24,7 @@ installed on its own.
 | Plugin | What it does | Docs |
 |---|---|---|
 | `release-please` | Configure a semantic auto-release pipeline for any GitHub repo | [README](plugins/release-please/README.md) |
+| `appimage` | Install a .AppImage as a first-class desktop citizen (`/opt`, icons, `.desktop`, URL schemes) | [README](plugins/appimage/README.md) |
 
 ## 2. Install
 

@@ -23,6 +23,7 @@
 | Plugin | 作用 | 文档 |
 |---|---|---|
 | `release-please` | 为任意 GitHub 仓库配置语义化自动发版流水线 | [README](plugins/release-please/README.zh-CN.md) |
+| `appimage` | 把 .AppImage 装成桌面一等公民（`/opt`、图标、`.desktop`、URL scheme） | [README](plugins/appimage/README.zh-CN.md) |
 
 ## 2. 安装
 
