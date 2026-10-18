@@ -52,7 +52,8 @@ Steps 4's sudo commands prompt for your password in the terminal — expected, n
 
 | Needed | When | Without it |
 |---|---|---|
-| sudo access | binary install to `/opt` | cannot proceed (icons and desktop file are user-level, but the binary isn't) |
+| sudo access | binary install to `/opt` (hybrid/system scopes) | choose the `user` scope — zero sudo |
+| DeckHand `core` plugin | sudo authentication | optional convenience: one GUI password prompt covers the session; without it the skill runs the same procedure built-in |
 | `libfuse2t64` | running the AppImage on Ubuntu 24.04 | the app won't start; the skill tells you the apt command |
 | `desktop-file-utils`, `gtk-update-icon-cache`, `xdg-utils` | validation, icon cache, scheme binding | standard on Ubuntu desktop; verification degrades gracefully |
 | Wayland: a re-login | after install, occasionally | the entry may not appear until you log out/in — the skill says so when relevant |

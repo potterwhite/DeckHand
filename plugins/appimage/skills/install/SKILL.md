@@ -1,7 +1,7 @@
 ---
 name: install
 description: Install a downloaded .AppImage into the system as a first-class desktop app — binary to /opt, icons into the hicolor theme, a validated .desktop entry, searchable in GNOME Activities with the correct icon and URL-scheme handling. Also upgrades an installed AppImage to a new version and fully uninstalls one. Use when the user asks to "install an AppImage", "integrate an AppImage into GNOME/the desktop", "make an AppImage show in the app menu / with its icon", "pin an AppImage", "upgrade/uninstall an AppImage", or 安装 AppImage / 把 AppImage 集成到桌面 / AppImage 图标显示成齿轮 / 升级或卸载 AppImage.
-allowed-tools: Read, Glob, Grep, Bash(file *), Bash(chmod *), Bash(mktemp *), Bash(find *), Bash(ls *), Bash(cp *), Bash(mkdir *), Bash(gtk-update-icon-cache *), Bash(desktop-file-validate *), Bash(update-desktop-database *), Bash(dpkg *), Bash(sed *), Bash(xdg-mime *), Bash(xdg-open *)
+allowed-tools: Read, Glob, Grep, Bash(file *), Bash(chmod *), Bash(mktemp *), Bash(find *), Bash(ls *), Bash(cp *), Bash(mkdir *), Bash(gtk-update-icon-cache *), Bash(desktop-file-validate *), Bash(update-desktop-database *), Bash(dpkg *), Bash(sed *), Bash(xdg-mime *), Bash(xdg-open *), Bash(sudo -n *), Bash(for *), Bash(cat ~/.claude/plugins/installed_plugins.json)
 ---
 
 # AppImage desktop integration
@@ -51,9 +51,37 @@ here — edit the charter and re-sync.
 8. **Never assume the install target.** Step 3 asks the user where things go. The three
    path variables defined there (`BIN_DIR`, `DESKTOP_DIR`, `ICON_ROOT`) are used by every
    later step — do not hardcode `/opt` or `~/.local/share` outside step 3.
-9. sudo commands prompt for the password in the terminal — that is expected, not a
-   failure. If sudo fails with an auth error, ask the user to run `! sudo -v` first, then
-   retry.
+9. sudo in a Claude Code session has **no TTY** — a bare `sudo` that needs a password
+   fails with `a terminal is required to read the password`. Before the first sudo
+   command, run the **Sudo authentication** procedure below.
+
+## Sudo authentication (before the first sudo command)
+
+1. Read `~/.claude/plugins/installed_plugins.json`. If the `core` plugin is installed →
+   invoke `/core:sudo-auth` and continue with its result.
+2. If core is **not** installed, show the charter's core-reminder (CHARTER.md §5) **once
+   per session**, then continue with the built-in fallback below regardless of the answer
+   (if the user installs core, use `/core:sudo-auth` from then on).
+3. **Built-in fallback** — the same procedure `/core:sudo-auth` runs:
+
+   ```bash
+   sudo -n true 2>/dev/null && echo SUDO_OK || echo SUDO_NEEDS_AUTH
+   for c in "$SUDO_ASKPASS" \
+            /usr/libexec/gcr-ssh-askpass /usr/libexec/gcr4-ssh-askpass \
+            /usr/libexec/ssh-askpass /usr/lib/ssh/ssh-askpass \
+            /usr/bin/ssh-askpass /usr/bin/ksshaskpass; do
+     [ -n "$c" ] && [ -x "$c" ] && { echo "ASKPASS=$c"; break; }
+   done
+   ```
+
+   - `SUDO_OK` → proceed.
+   - Helper found → hand the user `! SUDO_ASKPASS=<helper> sudo -A -v` (GUI password
+     dialog; the password never enters the chat), then re-check `sudo -n true`.
+   - No helper → offer: install `ssh-askpass-gnome` / `ksshaskpass` from their own
+     terminal, or run this flow's sudo commands there. Do **not** suggest `sudo -v` in a
+     separate terminal — sudo's `tty_tickets` means it won't unlock this session.
+   - sudo credentials expire (~15 min default). A password error midway is expiry, not a
+     bug — re-authenticate.
 
 ## Step 0 · Locate the AppImage, then preflight
 
@@ -257,4 +285,5 @@ $SUDO update-desktop-database <DESKTOP_DIR>
 | Electron sandbox error | Chromium sandbox vs AppImage | keep `--no-sandbox` in `Exec=` |
 | URL scheme dead | desktop database stale | `update-desktop-database`; then `xdg-mime default` explicitly |
 | Files "missing" after extract | `--appimage-extract` reset the CWD | absolute paths everywhere (Hard rule 1) |
+| `sudo: a terminal is required to read the password` | no TTY in this session | Sudo authentication section above |
 | Other users can't see the app | hybrid/user scope installs are per-user | reinstall with the system scope |

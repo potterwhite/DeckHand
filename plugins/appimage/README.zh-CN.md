@@ -48,7 +48,8 @@ AppImage 下载好后，在任意目录运行。可以带上路径；不带参�
 
 | 需要 | 什么时候 | 没有会怎样 |
 |---|---|---|
-| sudo 权限 | 装二进制到 `/opt` | 无法进行（图标和 desktop 文件是用户级的，但二进制不是） |
+| sudo 权限 | 装二进制到 `/opt`（hybrid/system 范围） | 选 `user` 范围 —— 零 sudo |
+| DeckHand `core` plugin | sudo 认证 | 可选的便利：一次图形密码弹窗管整个会话；不装则 skill 用内置的同一套流程 |
 | `libfuse2t64` | 在 Ubuntu 24.04 上运行 AppImage | 应用起不来；skill 会告诉你 apt 命令 |
 | `desktop-file-utils`、`gtk-update-icon-cache`、`xdg-utils` | 校验、图标缓存、scheme 绑定 | Ubuntu 桌面版默认都有；缺了验证会降级但不会出错 |
 | Wayland：重新登录 | 装完后偶尔需要 | 条目不重新登录可能不出现 —— 需要时 skill 会明说 |
