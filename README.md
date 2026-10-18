@@ -21,9 +21,16 @@ installed on its own.
 
 ## 1. Plugins
 
+**Primitives** (`primitives/`) — the standard library. Install once, every workflow benefits:
+
 | Plugin | What it does | Docs |
 |---|---|---|
-| `core` | Shared primitives (the standard library) — install once, every workflow benefits | [README](plugins/core/README.md) |
+| `core` | Shared primitives (currently: sudo-auth) | [README](primitives/core/README.md) |
+
+**Workflows** (`plugins/`) — complete user goals, installed à la carte:
+
+| Plugin | What it does | Docs |
+|---|---|---|
 | `release-please` | Configure a semantic auto-release pipeline for any GitHub repo | [README](plugins/release-please/README.md) |
 | `appimage` | Install a .AppImage as a first-class desktop citizen (`/opt`, icons, `.desktop`, URL schemes) | [README](plugins/appimage/README.md) |
 

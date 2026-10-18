@@ -8,7 +8,7 @@
   "plugins": [
     {
       "name": "core",
-      "source": "./plugins/core",
+      "source": "./primitives/core",
       "description": "DeckHand's shared primitives, installed as a whole — the standard library every workflow plugin may call. Currently: sudo-auth.",
       "author": {
         "name": "PotterWhite"

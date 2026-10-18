@@ -20,9 +20,16 @@
 
 ## 1. Plugins（有哪些）
 
+**原语层**（`primitives/`）—— 标准库。装一次，所有 workflow 受益：
+
 | Plugin | 作用 | 文档 |
 |---|---|---|
-| `core` | 共享原语（标准库）—— 装一次，所有 workflow 受益 | [README](plugins/core/README.zh-CN.md) |
+| `core` | 共享原语（当前：sudo-auth） | [README](primitives/core/README.zh-CN.md) |
+
+**Workflow 层**（`plugins/`）—— 完整的用户目标，按需单装：
+
+| Plugin | 作用 | 文档 |
+|---|---|---|
 | `release-please` | 为任意 GitHub 仓库配置语义化自动发版流水线 | [README](plugins/release-please/README.zh-CN.md) |
 | `appimage` | 把 .AppImage 装成桌面一等公民（`/opt`、图标、`.desktop`、URL scheme） | [README](plugins/appimage/README.zh-CN.md) |
 

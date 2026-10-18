@@ -11,10 +11,16 @@ skill files, and a second language would create a second master.
 
 ## 1. Two layers
 
-| Layer | What | Examples | Installed |
-|---|---|---|---|
-| **Workflows** | Plugins that deliver a complete user goal | `release-please`, `appimage` | à la carte |
-| **`core`** | One plugin bundling the shared primitives workflows need | `core:sudo-auth` | as a whole, never in parts |
+The layers are visible in the directory layout itself:
+
+| Layer | Directory | What | Examples | Installed |
+|---|---|---|---|---|
+| **Primitives** | `primitives/` | Shared capabilities workflows call — the standard library | `core:sudo-auth` | as a whole, never in parts |
+| **Workflows** | `plugins/` | Plugins that deliver a complete user goal | `release-please`, `appimage` | à la carte |
+
+`primitives/` currently holds exactly one plugin, `core`, which bundles every primitive
+(§6). If a future primitive ever outgrows the bundle, `primitives/` is where its plugin
+would go — never `plugins/`.
 
 Dependencies point one way only: **workflows may call `core`; `core` calls nothing.**
 
@@ -104,15 +110,24 @@ A plugin belongs in DeckHand only if **all** of these hold:
 ## Plugin skeleton
 
 ```
-plugins/<noun>/
-├── .claude-plugin/plugin.json   # fixed field set: name, description, version,
-│                                #   author, homepage, repository, license
-├── README.md                    # English
-├── README.zh-CN.md              # 中文
-└── skills/<verb>/
-    └── SKILL.md
-    # templates/ and references/ only when the skill genuinely needs them
+DeckHand/
+├── .claude-plugin/marketplace.json   # the repo IS the marketplace; lists every plugin
+├── CHARTER.md                        # this file
+├── primitives/                       # the standard library layer
+│   └── core/
+└── plugins/                          # the workflow layer
+    └── <noun>/
+        ├── .claude-plugin/plugin.json   # fixed field set: name, description, version,
+        │                                #   author, homepage, repository, license
+        ├── README.md                    # English
+        ├── README.zh-CN.md              # 中文
+        └── skills/<verb>/
+            └── SKILL.md
+            # templates/ and references/ only when the skill genuinely needs them
 ```
+
+`primitives/core/` uses the identical internal skeleton — the layers differ in purpose
+and install semantics, not in file layout.
 
 Every SKILL.md uses the same internal order:
 

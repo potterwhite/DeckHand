@@ -5,7 +5,7 @@
   "author": {
     "name": "PotterWhite"
   },
-  "homepage": "https://github.com/potterwhite/DeckHand/tree/main/plugins/core",
+  "homepage": "https://github.com/potterwhite/DeckHand/tree/main/primitives/core",
   "repository": "https://github.com/potterwhite/DeckHand",
   "license": "MIT"
 }
