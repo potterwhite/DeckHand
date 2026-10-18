@@ -1,0 +1,11 @@
+{
+  "name": "core",
+  "description": "DeckHand's shared primitives, installed as a whole: the capabilities every workflow plugin may call. Currently: sudo-auth (passwordless-TTY sudo via a GUI askpass prompt).",
+  "version": "0.1.0",
+  "author": {
+    "name": "PotterWhite"
+  },
+  "homepage": "https://github.com/potterwhite/DeckHand/tree/main/plugins/core",
+  "repository": "https://github.com/potterwhite/DeckHand",
+  "license": "MIT"
+}

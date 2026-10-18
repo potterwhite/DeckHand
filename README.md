@@ -23,6 +23,7 @@ installed on its own.
 
 | Plugin | What it does | Docs |
 |---|---|---|
+| `core` | Shared primitives (the standard library) — install once, every workflow benefits | [README](plugins/core/README.md) |
 | `release-please` | Configure a semantic auto-release pipeline for any GitHub repo | [README](plugins/release-please/README.md) |
 | `appimage` | Install a .AppImage as a first-class desktop citizen (`/opt`, icons, `.desktop`, URL schemes) | [README](plugins/appimage/README.md) |
 
