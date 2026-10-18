@@ -14,6 +14,24 @@ which is what upstream calls "Manifest Driven release-please" and treats as the 
 From `release-please-action@v4` onward most action inputs were removed "in favor of manifest
 configuration", so config files — not `with:` inputs — are where configuration belongs.
 
+## Market principles
+
+<!-- charter:begin -->
+These rules come from DeckHand's CHARTER.md and bind every plugin. Do not edit them
+here — edit the charter and re-sync.
+
+1. **Ask, don't assume.** If the user didn't specify a target (file, app, path, scope),
+   search the likely spots and ask — never pick silently.
+2. **Stop before the irreversible.** Show exactly what will change, and get explicit
+   confirmation, before any destructive or system-wide action.
+3. **Never ask for secrets in chat.** Authentication happens through the OS (a GUI
+   askpass dialog, the user's own terminal) — never by pasting passwords into the
+   conversation.
+4. **Compose with core, degrade gracefully.** When a core capability exists, invoke it
+   (`/core:<skill>`). If core is not installed, offer it once per session, then continue
+   with this skill's built-in fallback — the fallback must be fully functional.
+<!-- charter:end -->
+
 ## Hard rules
 
 1. Stop for user confirmation before pushing, and before changing repo settings.
