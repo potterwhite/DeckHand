@@ -6,10 +6,10 @@ allowed-tools: Read, Glob, Grep, Bash(file *), Bash(chmod *), Bash(mktemp *), Ba
 
 # AppImage desktop integration
 
-Turn a downloaded `*.AppImage` into a first-class desktop citizen: binary under `/opt`
-(root-owned, shared system-wide), searchable in GNOME Activities, correct icon instead of
-the gear placeholder, pinnable to Dash, custom URL schemes (`myapp://`) wired up. Works on
-any freedesktop-compliant DE (GNOME / KDE / XFCE / Cinnamon).
+Turn a downloaded `*.AppImage` into a first-class desktop citizen: binary under a stable
+path, searchable in GNOME Activities, correct icon instead of the gear placeholder,
+pinnable to Dash, custom URL schemes (`myapp://`) wired up. Works on any
+freedesktop-compliant DE (GNOME / KDE / XFCE / Cinnamon).
 
 The whole job is giving the XDG specs three things: a **stable executable path**, a
 **`.desktop` file**, and **hicolor icons**. Get all three right and the desktop picks the
@@ -28,10 +28,14 @@ app up by itself.
    `AppRun` token with the absolute path of the installed AppImage.
 6. `desktop-file-validate` must exit clean before you declare done. GNOME silently ignores
    invalid desktop files — this is the #1 "I installed it but can't find it" cause.
-7. Never silently overwrite an existing `/opt/<slug>/`, desktop file, or installed icon —
-   report what exists and ask.
-8. sudo commands prompt for the password in the terminal — that is expected, not a failure.
-   If sudo fails with an auth error, ask the user to run `! sudo -v` first, then retry.
+7. Never silently overwrite an existing install directory, desktop file, or installed
+   icon — report what exists and ask.
+8. **Never assume the install target.** Step 3 asks the user where things go. The three
+   path variables defined there (`BIN_DIR`, `DESKTOP_DIR`, `ICON_ROOT`) are used by every
+   later step — do not hardcode `/opt` or `~/.local/share` outside step 3.
+9. sudo commands prompt for the password in the terminal — that is expected, not a
+   failure. If sudo fails with an auth error, ask the user to run `! sudo -v` first, then
+   retry.
 
 ## Step 0 · Preflight
 
@@ -69,59 +73,88 @@ Record from the desktop file: `Name`, `Icon` (the logical name), `StartupWMClass
 
 ## Step 3 · Confirm the plan (stop and ask)
 
-Present the full plan and confirm with AskUserQuestion before touching the system:
+Ask **two** questions with AskUserQuestion before touching the system.
+
+**(a) The slug** — lowercase short name used for the install dir and desktop filename,
+derived from `Name`. Propose one, let the user correct it.
+
+**(b) The install scope.** This decides all paths for the rest of the run. Offer:
+
+| Scope | `BIN_DIR` (binary) | `DESKTOP_DIR` | `ICON_ROOT` | sudo needed | Visible to |
+|---|---|---|---|---|---|
+| **hybrid** (recommend first) | `/opt/<slug>` | `~/.local/share/applications` | `~/.local/share/icons/hicolor` | binary only | this user |
+| **system** | `/opt/<slug>` | `/usr/share/applications` | `/usr/share/icons/hicolor` | everything | all users |
+| **user** | `~/.local/opt/<slug>` | `~/.local/share/applications` | `~/.local/share/icons/hicolor` | none | this user |
+
+Trade-offs to present with the options:
+
+- **hybrid** — FHS-conventional binary location, root-owned so it can't be deleted by
+  accident; integration is per-user. The default for a single-user machine.
+- **system** — every user on the machine sees the app. Everything needs sudo, and the
+  icon cache / desktop database commands must also run under sudo.
+- **user** — no sudo at all; survives nothing breaks if the user has no sudo rights.
+  Binary is user-writable (no accidental-deletion protection).
+
+Then present the full plan in one block and confirm:
 
 > Install `<Name>`?
-> - slug: `<slug>` (lowercase, from the app name)
-> - binary → `/opt/<slug>/<filename>` (root:root, 755)
-> - icons → `~/.local/share/icons/hicolor/<sizes>/apps/<icon>.png`
-> - entry → `~/.local/share/applications/<slug>.desktop`
-> - Exec: `/opt/<slug>/<filename> <args>`
+> - slug: `<slug>` · scope: `<scope>`
+> - binary → `<BIN_DIR>/<filename>` (755)
+> - icons → `<ICON_ROOT>/<sizes>/apps/<icon>.png`
+> - entry → `<DESKTOP_DIR>/<slug>.desktop`
+> - Exec: `<BIN_DIR>/<filename> <args>`
 > - URL schemes: `<schemes, if any>`
 
-If `/opt/<slug>/` or the desktop file already exists, say so here — see Hard rule 7.
+If the target install dir or desktop file already exists, say so here — see Hard rule 7.
 
-## Step 4 · Install the binary (sudo)
+**From here on, use the variables, not literal paths.** `SUDO` below means: prefix with
+`sudo` when the scope requires it per the table, otherwise run bare.
+
+## Step 4 · Install the binary
 
 ```bash
-sudo mkdir -p /opt/<slug>
-sudo mv /abs/path/App.AppImage /opt/<slug>/<filename>
-sudo chmod 755 /opt/<slug>/<filename>
-sudo chown root:root /opt/<slug>/<filename>
+$SUDO mkdir -p <BIN_DIR>
+$SUDO mv /abs/path/App.AppImage <BIN_DIR>/<filename>
+$SUDO chmod 755 <BIN_DIR>/<filename>
+# hybrid/system scopes only:
+sudo chown root:root <BIN_DIR>/<filename>
 ```
 
 Keep the versioned filename (`Foo_1.2.3.AppImage`): the desktop file pins the version,
 which makes upgrades and rollback explicit. `mv`, not `cp` — one copy on disk.
 
-## Step 5 · Icons (user-level)
+## Step 5 · Icons
 
 ```bash
 SRC="$tmp/squashfs-root/usr/share/icons/hicolor"
 for sz in 16x16 24x24 32x32 48x48 64x64 128x128 192x192 256x256 512x512; do
   if [ -f "$SRC/$sz/apps/<icon>.png" ]; then
-    mkdir -p ~/.local/share/icons/hicolor/$sz/apps
-    cp "$SRC/$sz/apps/<icon>.png" ~/.local/share/icons/hicolor/$sz/apps/
+    $SUDO mkdir -p <ICON_ROOT>/$sz/apps
+    $SUDO cp "$SRC/$sz/apps/<icon>.png" <ICON_ROOT>/$sz/apps/
   fi
 done
-gtk-update-icon-cache -f -t ~/.local/share/icons/hicolor
+$SUDO gtk-update-icon-cache -f -t <ICON_ROOT>
 ```
 
 `<icon>` is the `Icon=` value from step 2. The `if` tolerates AppImages that ship only some
 sizes. `-t` forces the rebuild — without it the first install into an empty directory is
 sometimes skipped.
 
-## Step 6 · Desktop file (user-level)
+## Step 6 · Desktop file
 
 Derive it from the extracted one — replace the `AppRun` token with the installed path, keep
 everything else (including `%U` / `--no-sandbox` / `MimeType=` / `StartupWMClass=`):
 
 ```bash
-sed -e "s|^Exec=AppRun|Exec=/opt/<slug>/<filename>|" \
-    "$tmp"/squashfs-root/*.desktop > ~/.local/share/applications/<slug>.desktop
-chmod +x ~/.local/share/applications/<slug>.desktop
-desktop-file-validate ~/.local/share/applications/<slug>.desktop   # must print nothing
-update-desktop-database ~/.local/share/applications
+sed -e "s|^Exec=AppRun|Exec=<BIN_DIR>/<filename>|" \
+    "$tmp"/squashfs-root/*.desktop > <DESKTOP_DIR>/<slug>.desktop
+$SUDO chmod 755 <DESKTOP_DIR>/<slug>.desktop   # sudo only if DESKTOP_DIR is root-owned
+desktop-file-validate <DESKTOP_DIR>/<slug>.desktop   # must print nothing
+$SUDO update-desktop-database <DESKTOP_DIR>
 ```
+
+(For the system scope the file was written via a shell redirect — that needs
+`sudo tee`, not `sudo sed ... >`. User scopes write directly.)
 
 Read the result and sanity-check it. If the vendor's file is broken or missing fields, fix
 it against the [Desktop Entry spec](https://specifications.freedesktop.org/desktop-entry-spec/latest/)
@@ -131,9 +164,9 @@ than `AppRun`), edit the `Exec=` line by hand.
 ## Step 7 · Verify
 
 ```bash
-/opt/<slug>/<filename> <args without %U>     # direct launch, outside the DE
-grep -i '^Icon=' ~/.local/share/applications/<slug>.desktop
-ls ~/.local/share/icons/hicolor/*/apps/ | sort -u
+<BIN_DIR>/<filename> <args without %U>          # direct launch, outside the DE
+grep -i '^Icon=' <DESKTOP_DIR>/<slug>.desktop
+ls <ICON_ROOT>/*/apps/ | sort -u
 ```
 
 - Direct launch must work; if it fails, everything downstream is moot. Common failures:
@@ -157,24 +190,27 @@ The AppImage was moved, not copied, so `~/Downloads` is already clean.
 
 ## Upgrade flow
 
-New version downloaded, old one installed by this skill:
+New version downloaded, old one installed by this skill. Use the same paths as the
+existing install (read the current desktop file to recover them — do not re-ask scope).
 
-1. `chmod +x` the new file, `sudo mv` it into `/opt/<slug>/` next to the old one
+1. `chmod +x` the new file, `$SUDO mv` it into `<BIN_DIR>/` next to the old one
    (keep the old one as rollback until verified).
 2. Point the desktop file at the new filename:
-   `sed -i 's|<old-filename>|<new-filename>|g; s|^X-AppImage-Version=.*|X-AppImage-Version=<new-ver>|' ~/.local/share/applications/<slug>.desktop`
+   `$SUDO sed -i 's|<old-filename>|<new-filename>|g; s|^X-AppImage-Version=.*|X-AppImage-Version=<new-ver>|' <DESKTOP_DIR>/<slug>.desktop`
 3. `desktop-file-validate` again.
 4. Reinstall icons **only if the new version changed them** (extract and compare).
-5. Launch, verify, then ask before `sudo rm /opt/<slug>/<old-filename>`.
+5. Launch, verify, then ask before `$SUDO rm <BIN_DIR>/<old-filename>`.
 
 ## Uninstall flow
 
+Read the desktop file first to recover the paths, confirm with the user, then:
+
 ```bash
-sudo rm -rf /opt/<slug>
-rm ~/.local/share/applications/<slug>.desktop
-rm ~/.local/share/icons/hicolor/*/apps/<icon>.png
-gtk-update-icon-cache -f -t ~/.local/share/icons/hicolor
-update-desktop-database ~/.local/share/applications
+$SUDO rm -rf <BIN_DIR>
+$SUDO rm <DESKTOP_DIR>/<slug>.desktop
+$SUDO rm <ICON_ROOT>/*/apps/<icon>.png
+$SUDO gtk-update-icon-cache -f -t <ICON_ROOT>
+$SUDO update-desktop-database <DESKTOP_DIR>
 ```
 
 ## Troubleshooting
@@ -187,3 +223,4 @@ update-desktop-database ~/.local/share/applications
 | Electron sandbox error | Chromium sandbox vs AppImage | keep `--no-sandbox` in `Exec=` |
 | URL scheme dead | desktop database stale | `update-desktop-database`; then `xdg-mime default` explicitly |
 | Files "missing" after extract | `--appimage-extract` reset the CWD | absolute paths everywhere (Hard rule 1) |
+| Other users can't see the app | hybrid/user scope installs are per-user | reinstall with the system scope |

@@ -29,8 +29,9 @@ AppImage 下载好后，在任意目录运行：
    （Ubuntu 24.04 上是 `libfuse2t64`）是否在位
 2. **提取** —— 用 `--appimage-extract` 把 AppImage 自带的 `.desktop` 文件和图标解出来，
    直接抄官方的，不手写
-3. **确认** —— 列出完整计划（slug、每个目标路径、`Exec=` 行、URL scheme），停下来等你
-   批准后才动系统
+3. **确认** —— 先问你 slug 和**安装范围**（hybrid：`/opt` + 当前用户集成；system：全系统
+   所有用户可见；user：纯用户目录、零 sudo），列出完整计划（每个目标路径、`Exec=` 行、
+   URL scheme），停下来等你批准后才动系统
 4. **安装** —— 二进制进 `/opt/<slug>/`（sudo，root:root 755），所有尺寸的图标进
    `~/.local/share/icons/hicolor/`，desktop 文件进 `~/.local/share/applications/`，
    只把 `AppRun` 换成真实路径，其余参数原样保留

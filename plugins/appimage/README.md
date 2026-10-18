@@ -30,8 +30,10 @@ Run it anywhere, with the AppImage already downloaded:
    that FUSE (`libfuse2t64` on Ubuntu 24.04) is present
 2. **Extract** — pulls the vendor's own `.desktop` file and icons out of the AppImage with
    `--appimage-extract`, instead of writing anything from scratch
-3. **Confirm** — shows you the full plan (slug, every target path, the `Exec=` line, URL
-   schemes) and stops for your approval before touching the system
+3. **Confirm** — asks you the slug and the **install scope** (hybrid `/opt` + per-user
+   integration, fully system-wide, or fully user-local with no sudo), shows the full plan
+   (every target path, the `Exec=` line, URL schemes), and stops for approval before
+   touching the system
 4. **Install** — binary to `/opt/<slug>/` (sudo, root:root 755), all shipped icon sizes to
    `~/.local/share/icons/hicolor/`, desktop file to `~/.local/share/applications/` with only
    the `AppRun` token replaced by the real path
