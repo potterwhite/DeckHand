@@ -5,13 +5,14 @@
 把下载来的 `*.AppImage` 装成 Ubuntu / GNOME（以及任何遵循 freedesktop 规范的桌面）里的
 一等公民：二进制放进 `/opt`（root 所有），图标铺进 hicolor 主题，生成通过校验的
 `.desktop` 入口 —— Activities 里能搜到、显示真图标、能 pin 到 Dash，自定义 URL scheme
-（`myapp://`）也能调起。同一条 skill 还负责升级到新版本和彻底卸载。
+（`myapp://`）也能调起。同一条 skill 还负责升级到新版本。
 
-## 1. Skill
+## 1. Skills
 
 | Skill | 作用 |
 |---|---|
-| `/appimage:install` | 全生命周期：安装 → 验证 → 升级 → 卸载 |
+| `/appimage:install` | 安装 → 验证 → 升级 |
+| `/appimage:uninstall` | 找到已装的 AppImage，确认完整删除清单，移除二进制 + 入口 + 图标 |
 
 ## 2. 使用
 

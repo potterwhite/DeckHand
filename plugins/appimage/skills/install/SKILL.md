@@ -263,17 +263,10 @@ existing install (read the current desktop file to recover them — do not re-as
 4. Reinstall icons **only if the new version changed them** (extract and compare).
 5. Launch, verify, then ask before `$SUDO rm <BIN_DIR>/<old-filename>`.
 
-## Uninstall flow
+## Uninstalling
 
-Read the desktop file first to recover the paths, confirm with the user, then:
-
-```bash
-$SUDO rm -rf <BIN_DIR>
-$SUDO rm <DESKTOP_DIR>/<slug>.desktop
-$SUDO rm <ICON_ROOT>/*/apps/<icon>.png
-$SUDO gtk-update-icon-cache -f -t <ICON_ROOT>
-$SUDO update-desktop-database <DESKTOP_DIR>
-```
+Handled by the dedicated skill: **`/appimage:uninstall`** — it finds installed AppImages,
+shows the full deletion list for confirmation, and removes binary + entry + icons.
 
 ## Troubleshooting
 

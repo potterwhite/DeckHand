@@ -6,13 +6,14 @@ Install a downloaded `*.AppImage` as a first-class desktop citizen on Ubuntu / G
 any freedesktop-compliant DE): the binary goes to `/opt` root-owned, icons go into the
 hicolor theme, a validated `.desktop` entry makes it searchable in Activities with the real
 icon, pinnable to Dash, and wired up for custom URL schemes (`myapp://`). Also upgrades an
-installed AppImage to a new version and fully uninstalls one.
+installed AppImage to a new version.
 
-## 1. Skill
+## 1. Skills
 
 | Skill | Does |
 |---|---|
-| `/appimage:install` | Full lifecycle: install → verify → upgrade → uninstall |
+| `/appimage:install` | Install → verify → upgrade |
+| `/appimage:uninstall` | Find installed AppImages, confirm the full deletion list, remove binary + entry + icons |
 
 ## 2. Use
 
