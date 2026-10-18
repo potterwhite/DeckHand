@@ -37,7 +37,23 @@ app up by itself.
    failure. If sudo fails with an auth error, ask the user to run `! sudo -v` first, then
    retry.
 
-## Step 0 · Preflight
+## Step 0 · Locate the AppImage, then preflight
+
+**(a) Which AppImage?** Never assume one.
+
+- The user passed a path (e.g. `/appimage:install ~/Downloads/Foo.AppImage`) → verify it
+  exists and is a regular file. Doesn't exist → say so and stop; do not go hunting for a
+  "similar" file on your own.
+- No path given → search the likely spots and **ask the user to pick** (AskUserQuestion):
+
+  ```bash
+  find ~/Downloads ~/Desktop . -maxdepth 2 -name '*.AppImage' -type f 2>/dev/null
+  ```
+
+  Present the hits as options (with an "other / type a path" escape). If nothing turns up,
+  just ask for the path outright. `~/Downloads` is a place to *look*, never a default.
+
+**(b) Preflight** on the chosen file:
 
 ```bash
 file <APPIMAGE>                     # must say "ELF 64-bit LSB executable"

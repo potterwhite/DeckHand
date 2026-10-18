@@ -17,15 +17,18 @@
 
 还没装？看[仓库 README](../../README.zh-CN.md#2-安装)。
 
-AppImage 下载好后，在任意目录运行：
+AppImage 下载好后，在任意目录运行。可以带上路径；不带参数它会搜常见位置并问你要装
+哪一个：
 
 ```
 /appimage:install ~/Downloads/Foo_1.2.3.AppImage
+/appimage:install
 ```
 
 ## 3. 它做什么
 
-1. **预检** —— 确认文件真是 AppImage（`ELF 64-bit`）、`chmod +x`、检查 FUSE
+1. **定位 + 预检** —— 没带路径时会搜常见位置并问你要装哪一个（绝不默认
+   `~/Downloads`）；然后确认文件真是 AppImage（`ELF 64-bit`）、`chmod +x`、检查 FUSE
    （Ubuntu 24.04 上是 `libfuse2t64`）是否在位
 2. **提取** —— 用 `--appimage-extract` 把 AppImage 自带的 `.desktop` 文件和图标解出来，
    直接抄官方的，不手写

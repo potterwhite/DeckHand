@@ -18,16 +18,20 @@ installed AppImage to a new version and fully uninstalls one.
 
 Not installed yet? See the [repo README](../../README.md#2-install).
 
-Run it anywhere, with the AppImage already downloaded:
+Run it anywhere, with the AppImage already downloaded. Pass the path, or run it bare and
+it will search the likely spots and ask you which one:
 
 ```
 /appimage:install ~/Downloads/Foo_1.2.3.AppImage
+/appimage:install
 ```
 
 ## 3. What it does
 
-1. **Preflight** — checks the file is really an AppImage (`ELF 64-bit`), `chmod +x`, and
-   that FUSE (`libfuse2t64` on Ubuntu 24.04) is present
+1. **Locate + preflight** — if you didn't pass a path, searches the likely spots and asks
+   which AppImage you mean (never defaults to `~/Downloads`); then checks the file is
+   really an AppImage (`ELF 64-bit`), `chmod +x`, and that FUSE (`libfuse2t64` on Ubuntu
+   24.04) is present
 2. **Extract** — pulls the vendor's own `.desktop` file and icons out of the AppImage with
    `--appimage-extract`, instead of writing anything from scratch
 3. **Confirm** — asks you the slug and the **install scope** (hybrid `/opt` + per-user
