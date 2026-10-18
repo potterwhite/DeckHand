@@ -11,6 +11,16 @@
           "type": "json",
           "path": "plugins/release-please/.claude-plugin/plugin.json",
           "jsonpath": "$.version"
+        },
+        {
+          "type": "json",
+          "path": "plugins/appimage/.claude-plugin/plugin.json",
+          "jsonpath": "$.version"
+        },
+        {
+          "type": "json",
+          "path": "primitives/core/.claude-plugin/plugin.json",
+          "jsonpath": "$.version"
         }
       ]
     }

@@ -20,9 +20,18 @@
 
 ## 1. Plugins（有哪些）
 
+**原语层**（`primitives/`）—— 标准库。装一次，所有 workflow 受益：
+
+| Plugin | 作用 | 文档 |
+|---|---|---|
+| `core` | 共享原语（当前：sudo-auth） | [README](primitives/core/README.zh-CN.md) |
+
+**Workflow 层**（`plugins/`）—— 完整的用户目标，按需单装：
+
 | Plugin | 作用 | 文档 |
 |---|---|---|
 | `release-please` | 为任意 GitHub 仓库配置语义化自动发版流水线 | [README](plugins/release-please/README.zh-CN.md) |
+| `appimage` | 把 .AppImage 装成桌面一等公民（`/opt`、图标、`.desktop`、URL scheme） | [README](plugins/appimage/README.zh-CN.md) |
 
 ## 2. 安装
 
@@ -80,52 +89,18 @@ claude plugin validate ./plugins/release-please  # 提交前
 
 完整步骤和那些会被误判成 bug 的现象：`/plugin-dev`。
 
-## 附录 2 · 加一个新 plugin
+## 附录 2 · 新增或修改 plugin
 
-hierarchy 已经定型，加东西只是 `mkdir`，不需要改动现有结构：
+关于贡献的一切 —— 两层模型（workflow 与 `core`）、命名约定、准入标准、plugin 骨架、
+每条 SKILL.md 必须嵌入的运行纪律母版区块、设计取向 —— 都在 **[CHARTER.md](CHARTER.md)**，
+那是唯一权威来源。本 README 刻意不复述。
 
-```bash
-mkdir -p plugins/新名字/{.claude-plugin,skills/某技能}
-```
+两条即使是使用者也值得知道的机制：
 
-然后写三个文件：
-
-```
-plugins/新名字/
-├── .claude-plugin/plugin.json     # name / description / version
-├── README.md                      # 这个单元自己的说明
-└── skills/某技能/
-    └── SKILL.md                   # frontmatter: name + description
-```
-
-最后在根目录 `.claude-plugin/marketplace.json` 的 `plugins` 数组里加一条
-（`source` 是相对仓库根的路径，也就是 `./plugins/新名字`）。
-
-## 附录 3 · 仓库结构
-
-```
-DeckHand/
-├── .claude-plugin/marketplace.json   ← 仓库即 marketplace，列出所有 plugin
-└── plugins/
-    └── release-please/               ← 一个独立单元
-        ├── .claude-plugin/plugin.json
-        ├── README.md
-        └── skills/setup/
-            ├── SKILL.md
-            ├── templates/            ← 静态模板，skill 复制并替换占位符
-            └── references/           ← 按需加载的深度资料
-```
-
-**注意**：plugin 安装时是把目录复制到缓存，所以 plugin 之间**不能**用 `../` 相对路径
-共享文件 —— 每个单元必须自包含。
-
-## 附录 4 · 设计取向
-
-没有 Python，没有二进制，没有要安装的运行时。全部是 Markdown 指令加静态模板。
-
-因为这类活的难点从来不是计算，而是判断：这是 monorepo 吗？tag 前缀是 `v` 还是裸的？
-已有的 CHANGELOG 要保留还是接管？失败日志到底在说什么？特殊情况太多，
-写成 if-elif 只会在真正有意思的仓库上出错。判断交给模型，确定性的部分交给静态模板。
+- plugin 安装时会把目录复制进缓存，所以 plugin 之间**不能**用 `../` 相对路径共享文件
+  —— 每个单元必须自包含。
+- 推送到 `main` 本身不会到达用户；改动随 plugin 的 `version` bump 才发布
+  （见 CHARTER.md § Versioning）。
 
 ## License
 

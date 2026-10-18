@@ -17,7 +17,8 @@ cat ~/.claude/plugins/installed_plugins.json
 ## 2. Mount the working tree
 
 ```bash
-claude --plugin-dir ./plugins/<name>
+claude --plugin-dir ./plugins/<name>       # workflow plugins
+claude --plugin-dir ./primitives/<name>    # primitives (core)
 ```
 
 On a name clash the local copy wins for that session. No need to uninstall.
@@ -28,7 +29,7 @@ On a name clash the local copy wins for that session. No need to uninstall.
 /<plugin>:<dir under skills/>
 ```
 
-This repo today: `/release-please:setup`
+This repo today: `/release-please:setup`, `/appimage:install`, `/appimage:uninstall`, `/core:sudo-auth`
 
 ## 4. Reload after edits
 
@@ -41,10 +42,10 @@ This repo today: `/release-please:setup`
 - Plugin skills do **not** appear in `/skills`. Use `/plugin`.
 - Entries in `/skills` without a colon are personal skills in `~/.claude/skills/`, unrelated to this repo.
 - Without `--plugin-dir`, editing the working tree and running `/reload-plugins` does **nothing**. Committing does nothing either.
-- Pushing to `main` ≠ users receive it. Bump `version` in `plugins/<name>/.claude-plugin/plugin.json`.
+- Pushing to `main` ≠ users receive it. Bump `version` in `<layer>/<name>/.claude-plugin/plugin.json` (`<layer>` = `plugins` or `primitives`).
 
 ## Before committing
 
 ```bash
-claude plugin validate ./plugins/<name>
+claude plugin validate ./plugins/<name>     # or ./primitives/<name>
 ```

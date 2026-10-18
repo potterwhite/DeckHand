@@ -7,9 +7,25 @@
   },
   "plugins": [
     {
+      "name": "core",
+      "source": "./primitives/core",
+      "description": "DeckHand's shared primitives, installed as a whole — the standard library every workflow plugin may call. Currently: sudo-auth.",
+      "author": {
+        "name": "PotterWhite"
+      }
+    },
+    {
       "name": "release-please",
       "source": "./plugins/release-please",
       "description": "Configure a google/release-please semantic auto-release pipeline for any GitHub repo: survey the repo, generate the config, walk you through the required permission switch, verify the first run.",
+      "author": {
+        "name": "PotterWhite"
+      }
+    },
+    {
+      "name": "appimage",
+      "source": "./plugins/appimage",
+      "description": "Install a .AppImage as a first-class desktop citizen: /opt binary, hicolor icons, validated .desktop entry, GNOME Activities search, URL schemes. Covers install, upgrade, uninstall.",
       "author": {
         "name": "PotterWhite"
       }

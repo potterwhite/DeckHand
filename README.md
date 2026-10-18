@@ -21,9 +21,18 @@ installed on its own.
 
 ## 1. Plugins
 
+**Primitives** (`primitives/`) — the standard library. Install once, every workflow benefits:
+
+| Plugin | What it does | Docs |
+|---|---|---|
+| `core` | Shared primitives (currently: sudo-auth) | [README](primitives/core/README.md) |
+
+**Workflows** (`plugins/`) — complete user goals, installed à la carte:
+
 | Plugin | What it does | Docs |
 |---|---|---|
 | `release-please` | Configure a semantic auto-release pipeline for any GitHub repo | [README](plugins/release-please/README.md) |
+| `appimage` | Install a .AppImage as a first-class desktop citizen (`/opt`, icons, `.desktop`, URL schemes) | [README](plugins/appimage/README.md) |
 
 ## 2. Install
 
@@ -85,59 +94,19 @@ claude plugin validate ./plugins/release-please  # before committing
 
 Full procedure and the failure modes that look like bugs: `/plugin-dev`.
 
-## Appendix 2 · Adding a plugin
+## Appendix 2 · Adding or changing a plugin
 
-The hierarchy is settled. Adding something is just `mkdir` — no existing
-structure needs to change:
+Everything about contributing — the two-layer model (workflows vs `core`), naming,
+admission rules, the plugin skeleton, the runtime-discipline master block that every
+SKILL.md embeds, and the design stance — lives in **[CHARTER.md](CHARTER.md)**, the
+single source of truth. This README deliberately does not repeat it.
 
-```bash
-mkdir -p plugins/NAME/{.claude-plugin,skills/SOME_SKILL}
-```
+Two mechanical notes worth knowing even as a user:
 
-Then write three files:
-
-```
-plugins/NAME/
-├── .claude-plugin/plugin.json     # name / description / version
-├── README.md                      # this unit's own docs
-└── skills/SOME_SKILL/
-    └── SKILL.md                   # frontmatter: name + description
-```
-
-Finally add an entry to the `plugins` array in the root
-`.claude-plugin/marketplace.json` (`source` is a path relative to the repo root,
-i.e. `./plugins/NAME`).
-
-## Appendix 3 · Layout
-
-```
-DeckHand/
-├── .claude-plugin/marketplace.json   ← the repo IS the marketplace; lists every plugin
-└── plugins/
-    └── release-please/               ← one self-contained unit
-        ├── .claude-plugin/plugin.json
-        ├── README.md
-        └── skills/setup/
-            ├── SKILL.md
-            ├── templates/            ← static templates; the skill copies and substitutes
-            └── references/           ← deep material, loaded on demand
-```
-
-**Note**: installing a plugin copies its directory into a cache, so plugins
-**cannot** share files via `../` relative paths — every unit must be
-self-contained.
-
-## Appendix 4 · Design stance
-
-No Python, no binaries, no runtime to install. Markdown instructions plus static
-templates, nothing else.
-
-Because the hard part of this kind of work was never computation, it was
-judgement: is this a monorepo? Is the tag prefix `v` or bare? Should an existing
-CHANGELOG be preserved or taken over? What is that failure log actually saying?
-There are too many special cases; encoding them as if-elif only guarantees
-breakage on the repos that are actually interesting. Judgement goes to the model,
-the deterministic parts go to static templates.
+- Installing a plugin copies its directory into a cache, so plugins cannot share files
+  via `../` relative paths — every unit is self-contained.
+- Pushing to `main` does not reach users by itself; a change ships when the plugin's
+  `version` is bumped (see CHARTER.md § Versioning).
 
 ## License
 
