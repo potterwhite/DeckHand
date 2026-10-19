@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/potterwhite/DeckHand/compare/v0.3.0...v0.4.0) (2026-10-18)
+
+
+### Features
+
+* two-layer marketplace, core primitives, and appimage plugin ([#10](https://github.com/potterwhite/DeckHand/issues/10)) ([ca2aa67](https://github.com/potterwhite/DeckHand/commit/ca2aa6780db8841e3eab25f218b8be8b43d82710))
+
 ## [0.3.0](https://github.com/potterwhite/DeckHand/compare/v0.2.1...v0.3.0) (2026-09-25)
 
 
